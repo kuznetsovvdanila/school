@@ -10,6 +10,17 @@ class Push(models.Model):
     content = models.CharField("Содержание", max_length=256)
     type = models.IntegerField("Источник уведомления", default=1)
 
+    # def save(self, parametr: int, user, text: str):
+    #     if text is not None:
+    #         content = text
+    #     elif parametr==1:
+    #         txt = "1"
+    #         self.content = user.name + txt
+    #     elif parametr==2:
+    #         txt = "1"
+    #         self.content = user.name + txt
+        
+
     def __str__(self):
         return self.content
 
