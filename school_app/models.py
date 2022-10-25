@@ -29,19 +29,41 @@ class Push(models.Model):
 
 
 class File(models.Model):
-    pass
+    name = models.CharField("Название", max_length=128)
+    file = models.FileField("Файл", null=True, blank=True, upload_to="files", default=None)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Файл"
+        verbose_name_plural = "Файлы"
 
 
 class Task(models.Model):
-    name = models.CharField("Название", max_length=32)
-    text = models.CharField("Фамилия", max_length=32)
-    correct_answer = models.CharField("Правильный ответ", max_length=32)
+    name = models.CharField("Название задания", max_length=128)
+    text = models.CharField("Текст задания", max_length=4096)
+    correct_answer = models.CharField("Правильный ответ", max_length=512)
     files = models.ManyToManyField(File, "Файлы")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Задание"
+        verbose_name_plural = "Задания"
 
 
 class Homework(models.Model):
     name = models.CharField("Название", max_length=32)
     tasks = models.ManyToManyField(Task, "Задания")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Домашняя работа"
+        verbose_name_plural = "Домашние работы"
 
 
 class Lesson(models.Model):
@@ -51,6 +73,12 @@ class Lesson(models.Model):
     files = models.ManyToManyField(File, "Файлы", blank=True)
     homework = models.ForeignKey(Homework, "Домашняя работа", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Занятие"
+        verbose_name_plural = "Занятия"
 
 # class Progress(models.Model):
 #
@@ -79,20 +107,58 @@ class User(AbstractBaseUser):
 
 
 class Teacher(User):
-    pass
+    description = models.CharField(max_length=4096)
 
-# class Chat(models.Model):
-#
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Преподаватель"
+        verbose_name_plural = "Преподаватели"
+
+
+class Chat(models.Model):
+    name = models.CharField("Название", max_length=64)
+    url = models.CharField("Ссылка", max_length=256)
+    image = models.ImageField(null=True, blank=True, upload_to="images", default=None) #!!!!!!!!!!!!!!!!
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Чат"
+        verbose_name_plural = "Чаты"
 
 
 class Course(models.Model):
     is_active = models.BooleanField("Активный", default=True)
     name = models.CharField("Название", max_length=32)
+    teachers = models.ManyToManyField(Teacher, "Учителя")
+    users = models.ManyToManyField(User, "Ученик")
+    lessons = models.ManyToManyField(Lesson, "Уроки")
+    chat = models.ManyToManyField(Chat, "Чат")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Курс"
+        verbose_name_plural = "Курсы"
 
 
 class Admin(User):
-    pass
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Админ"
+        verbose_name_plural = "Админы"
 
 
 class SuperUser(Admin):
-    pass
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "БОГ"
+        verbose_name_plural = "БОГИ"
