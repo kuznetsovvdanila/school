@@ -34,21 +34,21 @@ class File(models.Model):
 
 
 class Task(models.Model):
-    name = models.CharField()
-    text = models.CharField()
-    correct_answer = models.CharField()
+    name = models.CharField(max_length=32)
+    text = models.CharField(max_length=32)
+    correct_answer = models.CharField(max_length=32)
     files = models.ManyToManyField(File)
 
 
 class Homework(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=32)
     tasks = models.ManyToManyField(Task)
 
 
 class Lesson(models.Model):
-    name = models.CharField()
-    description = models.CharField()
-    link = models.CharField()
+    name = models.CharField(max_length=32)
+    description = models.CharField(max_length=32)
+    link = models.CharField(max_length=32)
     files = models.ManyToManyField(File, blank=True)
     homework = models.ForeignKey(Homework, on_delete=models.CASCADE)
 
@@ -88,7 +88,7 @@ class Teacher(User):
 
 class Course(models.Model):
     is_active = models.BooleanField(default=True)
-    name = models.CharField()
+    name = models.CharField(max_length=32)
 
 
 class Admin(User):
