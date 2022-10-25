@@ -19,7 +19,6 @@ class Push(models.Model):
     #     elif parametr==2:
     #         txt = "1"
     #         self.content = user.name + txt
-        
 
     def __str__(self):
         return self.content
@@ -34,23 +33,23 @@ class File(models.Model):
 
 
 class Task(models.Model):
-    name = models.CharField(max_length=32)
-    text = models.CharField(max_length=32)
-    correct_answer = models.CharField(max_length=32)
-    files = models.ManyToManyField(File)
+    name = models.CharField("Название", max_length=32)
+    text = models.CharField("Фамилия", max_length=32)
+    correct_answer = models.CharField("Правильный ответ", max_length=32)
+    files = models.ManyToManyField(File, "Файлы")
 
 
 class Homework(models.Model):
-    name = models.CharField(max_length=32)
-    tasks = models.ManyToManyField(Task)
+    name = models.CharField("Название", max_length=32)
+    tasks = models.ManyToManyField(Task, "Задания")
 
 
 class Lesson(models.Model):
-    name = models.CharField(max_length=32)
-    description = models.CharField(max_length=32)
-    link = models.CharField(max_length=32)
-    files = models.ManyToManyField(File, blank=True)
-    homework = models.ForeignKey(Homework, on_delete=models.CASCADE)
+    name = models.CharField("Название", max_length=32)
+    description = models.CharField("Описание", max_length=32)
+    link = models.CharField("Ссылка", max_length=32)
+    files = models.ManyToManyField(File, "Файлы", blank=True)
+    homework = models.ForeignKey(Homework, "Домашняя работа", on_delete=models.CASCADE)
 
 
 # class Progress(models.Model):
@@ -58,7 +57,7 @@ class Lesson(models.Model):
 
 
 class User(AbstractBaseUser):
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField("Активный", default=True)
     name = models.CharField("Имя", max_length=32, default="Артём)")
     surname = models.CharField("Фамилия", max_length=32, default="Самотохин)")
     email = models.EmailField("Почта", max_length=32)
@@ -87,12 +86,13 @@ class Teacher(User):
 
 
 class Course(models.Model):
-    is_active = models.BooleanField(default=True)
-    name = models.CharField(max_length=32)
+    is_active = models.BooleanField("Активный", default=True)
+    name = models.CharField("Название", max_length=32)
 
 
 class Admin(User):
     pass
+
 
 class SuperUser(Admin):
     pass
