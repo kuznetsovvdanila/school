@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <script type="text/javascript" src="{% static 'js/jquery-3.5.1.min.js' %}"></script>
+</head>
+<body>
+    <div>Hello deers</div>
+    <div>{{ pivo }}</div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input type="text" name="name">
+    </form>
+</body>
+<script type="text/javascript" src="{% static 'js/index.js' %}" ></script>
+</html>
