@@ -1,14 +1,22 @@
+from sys import maxsize
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
-
+from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 
 # Create your models here.
 
 
 class Push(models.Model):
+
+    class types(models.TextChoices):
+        admin = '0', _('AdminPush')
+        homework = '1', _('HomeworkPush')
+        stream = '2', _('StreamPush')
+        course = '3', _('CoursePush')
+
     content = models.CharField("Содержание", max_length=256)
-    type = models.IntegerField("Источник уведомления", default=1)
+    type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.male)
 
     # def save(self, parametr: int, user, text: str):
     #     if text is not None:
@@ -92,7 +100,7 @@ class User(AbstractBaseUser):
     registered = models.DateTimeField("Зарегистрировался", default=datetime.now())
     notifications = models.ManyToManyField(Push, "Уведомления")
     available_courses = models.CharField("Доступные курсы", max_length=2048)
-
+    avatar = models.ImageField("Аватар", blank=True, default=None)
     # progresses = models.ManyToManyField(Progress)
 
     USERNAME_FIELD = 'email'
@@ -133,6 +141,8 @@ class Chat(models.Model):
 class Course(models.Model):
     is_active = models.BooleanField("Активный", default=True)
     name = models.CharField("Название", max_length=32)
+    description = models.CharField("Описание",max_length=4096)
+    value = models.IntegerField("Стоимость", default=0)
     teachers = models.ManyToManyField(Teacher, "Учителя")
     users = models.ManyToManyField(User, "Ученик")
     lessons = models.ManyToManyField(Lesson, "Уроки")
