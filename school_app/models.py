@@ -178,6 +178,7 @@ class Progress(models.Model):
         self.tasks = '.'.join([' '.join(i) for i in tasks])
         self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         self.lessons = " ".join(["0" for i in range(len(lessons))])
+        self.is_bought = True
 
         
 
@@ -201,12 +202,12 @@ class Progress(models.Model):
         _status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         count_lessons = len(lessons)
         _lessons = " ".join(["0" for i in range(count_lessons)])
-        progress = cls(lessons=_lessons, tasks=_tasks, status_tasks=_status_tasks)
+        progress = cls(lessons=_lessons, tasks=_tasks, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress
 
 
     def __str__(self):
-        return self.email
+        return self.id_course
 
     class Meta:
         verbose_name = "Пользователь"
