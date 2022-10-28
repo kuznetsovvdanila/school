@@ -1,7 +1,8 @@
 from django.shortcuts import render
-
-from django.http import HttpResponse
-
+from django.http import HttpResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.views.csrf import csrf_failure
+from .models import Course
 
 def index(request):
     context = {'pivo': 'tozepivo'}
@@ -11,4 +12,14 @@ def index(request):
     elif request.method == 'POST':
         print(request.POST.get('name'))
         print(1)
+
+    # course = Course.objects.create()
+    # course = Course.create(*args)
+    return render(request, 'index.html', context)
+
+def csrf_failure(request, reason=""):
+    context = {'pivo': 'otsosite chlen'}
+    if request.method == 'POST':
+        print(request.POST.get('name'))
+        print('я прошел сквозь стену')
     return render(request, 'index.html', context)

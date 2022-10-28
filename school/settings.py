@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-g_jsj_&-ih=)og06=^&0oxii0u^p-ue2yk94$dkd!4u%&hi&zb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1"]
 
 
 # Application definition
@@ -122,3 +122,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_FAILURE_VIEW = 'school_app.views.csrf_failure'
