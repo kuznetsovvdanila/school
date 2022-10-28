@@ -121,6 +121,11 @@ class Progress(models.Model):
     # to status_tasks : 0 is default, 1 is completed, 2 is wrong
 
     # tasks, status_tasks
+    """Парсит данные о задании и его статусе выполнения:
+             формат : lesson1.lesson2.  .lessonN
+             id task: 0 1 2 3.4 6 7 8.  .9 11 15 16 17  Хранится id из БД - id могут быть (будут) не упорядочены
+        status_tasks: 0 1 0 2.2 1 2 0.  .0 0 1 2 1      0 is default, 1 is completed, 2 is wrong
+    """
     @staticmethod
     def parseToList(tasks : str) -> list:
         Array = tasks.split('.')
@@ -129,12 +134,18 @@ class Progress(models.Model):
         #print('.'.join([' '.join(i) for i in Array]))
         return Array
 
+    """
+        Получает на вход индекс курса, парсит строку, переводит в массив, возвращает прогресс по курсу(%) int
+    """
     def lessonPercentage(self, index : int) -> int:
         tasks = parseToList(self.tasks)
         status_tasks = parseToList(self.status_tasks)
         percent = round(tasks[index]/status_tasks[index].count('1'))
         return percent
 
+    """
+        Получает на вход индекс курса и прогресс по уроку int, либо добавляет прогресс по уроку, либо обновляет существующий
+    """
     def lessonManage(self, index : int, percent : int) -> str:
         Array = self.lesson.split(" ")
         if index == len(Array):
@@ -143,6 +154,10 @@ class Progress(models.Model):
             Array[index] = percent
         return " ".join(Array)
 
+    """
+        Передаем строку с прогрессом в % на курсе по каждому lesson: 67 50 90 for lessons : split(" ")
+        
+    """
     def save(self, *args, **kwargs):
         super(Progress, self).save(*args, **kwargs)
         if kwargs.lesson is not None:
@@ -158,11 +173,18 @@ class Progress(models.Model):
         self.whole_course = round(self.status_task.count('1')/
                 (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
 
+
+    """
+        Вызывается при покупке курса без начала бесплатного прохождения
+    """
     # Покупка курсов
     @overload
     def bought(course):
         create(course, True)
-    
+
+    """
+        Вызывается при начале бесплатного прохождения. Записывает
+    """
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
@@ -181,10 +203,12 @@ class Progress(models.Model):
         self.is_bought = True
 
         
-
+    """
+        
+    """
     @classmethod
     def create(cls, course, param=False):
-        lessons
+        lessons = 0
         if param :
             lessons = course.lessons.exclude(access=Lesson.accesses.closed)
         else:
