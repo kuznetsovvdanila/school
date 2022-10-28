@@ -63,7 +63,7 @@ class Task(models.Model):
     name = models.CharField("Название задания", max_length=128)
     text = models.CharField("Текст задания", max_length=4096)
     correct_answer = models.CharField("Правильный ответ", max_length=512)
-    files = models.ManyToManyField(FileTask, related_name="Файлы", blank=True)
+    files = models.ManyToManyField(FileTask, related_name="Файлы+", blank=True)
 
     def __str__(self):
         return self.name
@@ -75,7 +75,7 @@ class Task(models.Model):
 
 class Homework(models.Model):
     name = models.CharField("Название", max_length=32)
-    tasks = models.ManyToManyField(Task, related_name="Задания")
+    tasks = models.ManyToManyField(Task, related_name="Задания+")
 
     def __str__(self):
         return self.name
@@ -95,10 +95,10 @@ class Lesson(models.Model):
     description = models.CharField("Описание", max_length=2048)
     link = models.CharField("Ссылка", max_length=256)
     homework = models.ForeignKey(Homework, on_delete=models.CASCADE)
-    files = models.ManyToManyField(FileLesson, related_name="Файлы", blank=True)
+    files = models.ManyToManyField(FileLesson, related_name="Файлы+", blank=True)
     index = models.IntegerField("Индекс внутри курса", default=0)
 
-    access = models.CharField("",  default=accesses.closed, choice=accesses.choices, max_length=1)
+    access = models.CharField("Уровень доступа",  default=accesses.closed, choices=accesses.choices, max_length=1)
 
     def __str__(self):
         return self.name
@@ -146,6 +146,12 @@ class Progress(models.Model):
     def save(self, *args, **kwargs):
         super(Progress, self).save(*args, **kwargs)
         if kwargs.lesson is not None:
+            array_tasks = parseToList(self.tasks)
+            array_tasks.append([i.id for i in list(kwargs.lesson.homework.tasks.all())])
+            array_status_tasks = parseToList(self.status_tasks)
+            array_status_tasks.append(["0" for i in range(len(list(kwargs.lesson.homework.tasks.all())))])
+            self.tasks = '.'.join([' '.join(i) for i in array_tasks])
+            self.lessons = '.'.join([' '.join(i) for i in array_status_tasks])
             percent = self.lessonPercentage(kwargs.lesson.index)
             self.lessons = self.lessonManage(kwargs.lesson.index, percent)
 
@@ -161,20 +167,41 @@ class Progress(models.Model):
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
         tasks = list()
-        for i in lessons:
-            percent = self.lessonPercentage(i.index)
-            self.lessons = self.lessonManage(i.index, percent)
+        status_tasks = list()
+        for i in range(len(lessons)):
+            tasks.append([])
+            status_tasks.append([])
+            all_tasks = list(lessons[i].homework.tasks.all())
+            for k in all_tasks:
+                tasks[i].append(k.id)
+                status_tasks[i].append("0")
+        self.tasks = '.'.join([' '.join(i) for i in tasks])
+        self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
+        self.lessons = " ".join(["0" for i in range(len(lessons))])
+
         
 
     @classmethod
     def create(cls, course, param=False):
+        lessons
         if param :
             lessons = course.lessons.exclude(access=Lesson.accesses.closed)
         else:
             lessons = course.lessons.filter(access=Lesson.accesses.available)
+        tasks = list()
+        status_tasks = list()
+        for i in range(len(lessons)):
+            tasks.append([])
+            status_tasks.append([])
+            all_tasks = list(lessons[i].homework.tasks.all())
+            for k in all_tasks:
+                tasks[i].append(k.id)
+                status_tasks[i].append("0")
+        _tasks = '.'.join([' '.join(i) for i in tasks])
+        _status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         count_lessons = len(lessons)
         _lessons = " ".join(["0" for i in range(count_lessons)])
-        progress = cls()
+        progress = cls(lessons=_lessons, tasks=_tasks, status_tasks=_status_tasks)
         return progress
 
 
@@ -191,10 +218,10 @@ class User(AbstractBaseUser):
     surname = models.CharField("Фамилия", max_length=64, default="")
     email = models.EmailField("Почта", max_length=128)
     registered = models.DateTimeField("Зарегистрировался", default=datetime.now())
-    notifications = models.ManyToManyField(Push, related_name="Уведомления", blank=True)
+    notifications = models.ManyToManyField(Push, related_name="Уведомления+", blank=True)
     my_courses = models.CharField("Доступные курсы", max_length=2048, blank=True)
     avatar = models.ImageField("Аватар", blank=True, default=None)
-    progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам", blank=True)
+    progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -237,10 +264,11 @@ class Course(models.Model):
     description = models.CharField("Описание",max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
     value = models.IntegerField("Стоимость", default=0)
-    teachers = models.ManyToManyField(Teacher, related_name="Учителя")
-    users = models.ManyToManyField(User, related_name="Ученик")
-    lessons = models.ManyToManyField(Lesson, related_name="Уроки")
-    chat = models.ManyToManyField(Chat, related_name="Чат")
+    teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
+    users = models.ManyToManyField(User, related_name="Ученики+")
+    trials = models.ManyToManyField(User, related_name="Триалы+")
+    lessons = models.ManyToManyField(Lesson, related_name="Уроки+")
+    chat = models.ManyToManyField(Chat, related_name="Чат+")
 
     def __str__(self):
         return self.name
