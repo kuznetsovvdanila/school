@@ -63,6 +63,7 @@ class Task(models.Model):
     name = models.CharField("Название задания", max_length=128)
     text = models.CharField("Текст задания", max_length=4096)
     correct_answer = models.CharField("Правильный ответ", max_length=512)
+    index = models.IntegerField("Индекс внутри homework", default=0)
     files = models.ManyToManyField(FileTask, related_name="Файлы+", blank=True)
 
     def __str__(self):
@@ -122,7 +123,6 @@ class Progress(models.Model):
     
     # tasks, status_tasks
 
-
     @staticmethod
     def parseToList(tasks : str) -> list:
         Array = tasks.split('.')
@@ -131,13 +131,11 @@ class Progress(models.Model):
         #print('.'.join([' '.join(i) for i in Array]))
         return Array
 
-
     def lessonPercentage(self, index : int) -> int:
         tasks = Progress.parseToList(self.tasks)
         status_tasks = Progress.parseToList(self.status_tasks)
         percent = round(tasks[index]/status_tasks[index].count('1'))
         return percent
-
 
     def lessonManage(self, index : int, percent : int) -> str:
         Array = self.lesson.split(" ")
@@ -147,23 +145,39 @@ class Progress(models.Model):
             Array[index] = percent
         return " ".join(Array)
 
-
     def save(self, *args, **kwargs):
         super(Progress, self).save(*args, **kwargs)
-        if kwargs.lesson is not None:
+        # Для обновления по результатам выполнения одного Taska
+        # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
+        if (kwargs.lesson_index is not None) and (kwargs.task_index is not None):
             array_tasks = Progress.parseToList(self.tasks)
-            array_tasks.append([i.id for i in list(kwargs.lesson.homework.tasks.all())])
             array_status_tasks = Progress.parseToList(self.status_tasks)
-            array_status_tasks.append(["0" for i in range(len(list(kwargs.lesson.homework.tasks.all())))])
-            self.tasks = '.'.join([' '.join(i) for i in array_tasks])
-            self.lessons = '.'.join([' '.join(i) for i in array_status_tasks])
+
+            array_status_tasks[kwargs.lesson_index][kwargs.task_index] = kwargs.status_code
+
+            self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
+
             percent = self.lessonPercentage(kwargs.lesson.index)
             self.lessons = self.lessonManage(kwargs.lesson.index, percent)
 
-        self.whole_course = round(self.status_task.count('1')/
-                (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+            self.whole_course = round(self.status_task.count('1')/
+                    (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
 
+    def openLesson(self, lesson):
+        if lesson is not None:
+            array_tasks = Progress.parseToList(self.tasks)
+            array_status_tasks = Progress.parseToList(self.status_tasks)
 
+            array_tasks.append([i.id for i in list(lesson.homework.tasks.all())])
+            array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
+
+            self.tasks = '.'.join([' '.join(i) for i in array_tasks])
+            self.lessons = '.'.join([' '.join(i) for i in array_status_tasks])
+
+            self.lessons = self.lessonManage(lesson.index, 0)
+
+            self.whole_course = round(self.status_task.count('1')/
+                    (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
 
     # Покупка курсов
     @overload
@@ -173,14 +187,15 @@ class Progress(models.Model):
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
-        tasks = list()
-        status_tasks = list()
+        tasks = list() ; status_tasks = list()
+
         for i in range(len(lessons)):
             tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in all_tasks:
                 tasks[i].append(k.id)
                 status_tasks[i].append("0")
+
         self.tasks = '.'.join([' '.join(i) for i in tasks])
         self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         self.lessons = " ".join(["0" for i in range(len(lessons))])
@@ -190,21 +205,21 @@ class Progress(models.Model):
     @classmethod
     def create(cls, course, param=False):
         lessons = 0
-        if param :
-            lessons = course.lessons.exclude(access=Lesson.accesses.closed)
-        else:
-            lessons = course.lessons.filter(access=Lesson.accesses.available)
-        tasks = list()
-        status_tasks = list()
+        if param : lessons = course.lessons.exclude(access=Lesson.accesses.closed)
+        else: lessons = course.lessons.filter(access=Lesson.accesses.available)
+        count_lessons = len(lessons)
+
+        tasks = list() ; status_tasks = list()
+
         for i in range(len(lessons)):
             tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in all_tasks:
                 tasks[i].append(k.id)
                 status_tasks[i].append("0")
+        
         _tasks = '.'.join([' '.join(i) for i in tasks])
         _status_tasks = '.'.join([' '.join(i) for i in status_tasks])
-        count_lessons = len(lessons)
         _lessons = " ".join(["0" for i in range(count_lessons)])
         progress = cls(lessons=_lessons, tasks=_tasks, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress

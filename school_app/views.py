@@ -11,8 +11,9 @@ def index(request):
         print(request.GET)
     elif request.method == 'POST':
         print(request.POST.get('name'))
-        print(1)
+        print(request.path_info)
 
+    #path = /idCourse_nameCourse/indexLesson_nameLesson/indexTask
     # course = Course.objects.create()
     # course = Course.create(*args)
     return render(request, 'index.html', context)
