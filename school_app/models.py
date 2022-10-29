@@ -119,13 +119,10 @@ class Progress(models.Model):
     # 0 1 2.3 4 5 for tasks : split(".") : split(" ")
     # 0 1 2.0 1 0 for status_tasks : split(".") : split(" ")
     # to status_tasks : 0 is default, 1 is completed, 2 is wrong
-
+    
     # tasks, status_tasks
-    """Парсит данные о задании и его статусе выполнения:
-             формат : lesson1.lesson2.  .lessonN
-             id task: 0 1 2 3.4 6 7 8.  .9 11 15 16 17  Хранится id из БД - id могут быть (будут) не упорядочены
-        status_tasks: 0 1 0 2.2 1 2 0.  .0 0 1 2 1      0 is default, 1 is completed, 2 is wrong
-    """
+
+
     @staticmethod
     def parseToList(tasks : str) -> list:
         Array = tasks.split('.')
@@ -134,18 +131,14 @@ class Progress(models.Model):
         #print('.'.join([' '.join(i) for i in Array]))
         return Array
 
-    """
-        Получает на вход индекс курса, парсит строку, переводит в массив, возвращает прогресс по курсу(%) int
-    """
+
     def lessonPercentage(self, index : int) -> int:
-        tasks = parseToList(self.tasks)
-        status_tasks = parseToList(self.status_tasks)
+        tasks = Progress.parseToList(self.tasks)
+        status_tasks = Progress.parseToList(self.status_tasks)
         percent = round(tasks[index]/status_tasks[index].count('1'))
         return percent
 
-    """
-        Получает на вход индекс курса и прогресс по уроку int, либо добавляет прогресс по уроку, либо обновляет существующий
-    """
+
     def lessonManage(self, index : int, percent : int) -> str:
         Array = self.lesson.split(" ")
         if index == len(Array):
@@ -154,16 +147,13 @@ class Progress(models.Model):
             Array[index] = percent
         return " ".join(Array)
 
-    """
-        Передаем строку с прогрессом в % на курсе по каждому lesson: 67 50 90 for lessons : split(" ")
-        
-    """
+
     def save(self, *args, **kwargs):
         super(Progress, self).save(*args, **kwargs)
         if kwargs.lesson is not None:
-            array_tasks = parseToList(self.tasks)
+            array_tasks = Progress.parseToList(self.tasks)
             array_tasks.append([i.id for i in list(kwargs.lesson.homework.tasks.all())])
-            array_status_tasks = parseToList(self.status_tasks)
+            array_status_tasks = Progress.parseToList(self.status_tasks)
             array_status_tasks.append(["0" for i in range(len(list(kwargs.lesson.homework.tasks.all())))])
             self.tasks = '.'.join([' '.join(i) for i in array_tasks])
             self.lessons = '.'.join([' '.join(i) for i in array_status_tasks])
@@ -174,25 +164,19 @@ class Progress(models.Model):
                 (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
 
 
-    """
-        Вызывается при покупке курса без начала бесплатного прохождения
-    """
+
     # Покупка курсов
     @overload
     def bought(course):
         create(course, True)
-
-    """
-        Вызывается при начале бесплатного прохождения. Записывает
-    """
+    
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
         tasks = list()
         status_tasks = list()
         for i in range(len(lessons)):
-            tasks.append([])
-            status_tasks.append([])
+            tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in all_tasks:
                 tasks[i].append(k.id)
@@ -202,10 +186,7 @@ class Progress(models.Model):
         self.lessons = " ".join(["0" for i in range(len(lessons))])
         self.is_bought = True
 
-        
-    """
-        
-    """
+
     @classmethod
     def create(cls, course, param=False):
         lessons = 0
@@ -216,8 +197,7 @@ class Progress(models.Model):
         tasks = list()
         status_tasks = list()
         for i in range(len(lessons)):
-            tasks.append([])
-            status_tasks.append([])
+            tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in all_tasks:
                 tasks[i].append(k.id)
