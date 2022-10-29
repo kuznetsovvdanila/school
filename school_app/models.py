@@ -1,4 +1,3 @@
-from secrets import choice
 from typing import overload
 from venv import create
 from django.db import models
@@ -110,11 +109,11 @@ class Lesson(models.Model):
 
 class Progress(models.Model):
     id_course = models.IntegerField("ID курса", default=0)
-    is_bought = models.BooleanField("", default=False)
+    is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
     lessons = models.CharField("Уроки %", max_length=512, default=" ") # may be change to 1024
     tasks = models.CharField("Задачи курса", max_length=8192, default=" ")
-    status_tasks = models.CharField("Задачи курса", max_length=8192, default=" ")
+    status_tasks = models.CharField("Задачи курса (статус)", max_length=8192, default=" ")
 
     # 67 50 90 for lessons : split(" ")
     # 0 1 2.3 4 5 for tasks : split(".") : split(" ")
@@ -146,22 +145,23 @@ class Progress(models.Model):
         return " ".join(Array)
 
     def save(self, *args, **kwargs):
-        super(Progress, self).save(*args, **kwargs)
         # Для обновления по результатам выполнения одного Taska
         # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
-        if (kwargs.lesson_index is not None) and (kwargs.task_index is not None):
-            array_tasks = Progress.parseToList(self.tasks)
-            array_status_tasks = Progress.parseToList(self.status_tasks)
+        if len(kwargs) != 0:
+            if (kwargs["lesson_index"] is not None) and (kwargs["task_index"] is not None):
+                array_tasks = Progress.parseToList(self.tasks)
+                array_status_tasks = Progress.parseToList(self.status_tasks)
 
-            array_status_tasks[kwargs.lesson_index][kwargs.task_index] = kwargs.status_code
+                array_status_tasks[kwargs["lesson_index"]][kwargs["task_index"]] = kwargs["status_code"]
 
-            self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
+                self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
 
-            percent = self.lessonPercentage(kwargs.lesson.index)
-            self.lessons = self.lessonManage(kwargs.lesson.index, percent)
+                percent = self.lessonPercentage(kwargs.lesson.index)
+                self.lessons = self.lessonManage(kwargs.lesson.index, percent)
 
-            self.whole_course = round(self.status_task.count('1')/
-                    (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+                self.whole_course = round(self.status_task.count('1')/
+                        (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+        super(Progress, self).save(*args, **kwargs)
 
     def openLesson(self, lesson):
         if lesson is not None:
@@ -226,11 +226,11 @@ class Progress(models.Model):
 
 
     def __str__(self):
-        return self.id_course
+        return str(self.id_course)
 
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = "Прогресс по курсу"
+        verbose_name_plural = "Прогресс по курсам"
 
 class User(AbstractBaseUser):
     is_active = models.BooleanField("Активный", default=True)
