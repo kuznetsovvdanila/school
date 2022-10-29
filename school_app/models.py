@@ -112,6 +112,7 @@ class Progress(models.Model):
     is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
     lessons = models.CharField("Уроки %", max_length=512, default=" ") # may be change to 1024
+    tasks = models.CharField("Задачи курса", max_length=8192, default=" ")
     status_tasks = models.CharField("Задачи курса (статус)", max_length=8192, default=" ")
 
     # 67 50 90 for lessons : split(" ")
@@ -130,8 +131,9 @@ class Progress(models.Model):
         return Array
 
     def lessonPercentage(self, index : int) -> int:
+        tasks = Progress.parseToList(self.tasks)
         status_tasks = Progress.parseToList(self.status_tasks)
-        percent = round(100*status_tasks[index].count('1')/len(status_tasks[index]))
+        percent = round(tasks[index]/status_tasks[index].count('1'))
         return percent
 
     def lessonManage(self, index : int, percent : int) -> str:
@@ -147,6 +149,7 @@ class Progress(models.Model):
         # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
         if len(kwargs) != 0:
             if (kwargs["lesson_index"] is not None) and (kwargs["task_index"] is not None):
+                array_tasks = Progress.parseToList(self.tasks)
                 array_status_tasks = Progress.parseToList(self.status_tasks)
 
                 array_status_tasks[kwargs["lesson_index"]][kwargs["task_index"]] = kwargs["status_code"]
@@ -162,11 +165,14 @@ class Progress(models.Model):
 
     def openLesson(self, lesson):
         if lesson is not None:
+            array_tasks = Progress.parseToList(self.tasks)
             array_status_tasks = Progress.parseToList(self.status_tasks)
 
+            array_tasks.append([i.id for i in list(lesson.homework.tasks.all())])
             array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
 
-            self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
+            self.tasks = '.'.join([' '.join(i) for i in array_tasks])
+            self.lessons = '.'.join([' '.join(i) for i in array_status_tasks])
 
             self.lessons = self.lessonManage(lesson.index, 0)
 
@@ -181,14 +187,16 @@ class Progress(models.Model):
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
-        status_tasks = list()
+        tasks = list() ; status_tasks = list()
 
         for i in range(len(lessons)):
-            status_tasks.append([])
+            tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
-            for k in range(len(all_tasks)):
+            for k in all_tasks:
+                tasks[i].append(k.id)
                 status_tasks[i].append("0")
 
+        self.tasks = '.'.join([' '.join(i) for i in tasks])
         self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         self.lessons = " ".join(["0" for i in range(len(lessons))])
         self.is_bought = True
@@ -201,17 +209,19 @@ class Progress(models.Model):
         else: lessons = course.lessons.filter(access=Lesson.accesses.available)
         count_lessons = len(lessons)
 
-        status_tasks = list()
+        tasks = list() ; status_tasks = list()
 
         for i in range(len(lessons)):
-            status_tasks.append([])
+            tasks.append([]) ; status_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
-            for k in range(len(all_tasks)):
+            for k in all_tasks:
+                tasks[i].append(k.id)
                 status_tasks[i].append("0")
         
+        _tasks = '.'.join([' '.join(i) for i in tasks])
         _status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         _lessons = " ".join(["0" for i in range(count_lessons)])
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param)
+        progress = cls(lessons=_lessons, tasks=_tasks, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress
 
 
