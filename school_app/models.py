@@ -2,10 +2,28 @@ from typing import overload
 from venv import create
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime
+from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
 
 # Create your models here.
+
+class inft():
+    @staticmethod
+    def parseToList(tasks : str) -> list:
+        Array = tasks.split('.')
+        for i in range(len(Array)):
+            Array[i] = Array[i].split(' ')
+        #print('.'.join([' '.join(i) for i in Array]))
+        return Array
+    
+    @staticmethod
+    def joinToString(array : list):
+        if array[0] is list:
+            return '.'.join([' '.join(i) for i in array])
+        elif array[0] is not list:
+            return " ".join(["0" for i in range(len(array))])
 
 class Push(models.Model):
 
@@ -121,16 +139,8 @@ class Progress(models.Model):
     
     # tasks, status_tasks
 
-    @staticmethod
-    def parseToList(tasks : str) -> list:
-        Array = tasks.split('.')
-        for i in range(len(Array)):
-            Array[i] = Array[i].split(' ')
-        #print('.'.join([' '.join(i) for i in Array]))
-        return Array
-
     def lessonPercentage(self, index : int) -> int:
-        status_tasks = Progress.parseToList(self.status_tasks)
+        status_tasks = inft.parseToList(self.status_tasks)
         percent = round(100*status_tasks[index].count('1')/len(status_tasks[index]))
         return percent
 
@@ -147,11 +157,11 @@ class Progress(models.Model):
         # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
         if len(kwargs) != 0:
             if (kwargs["lesson_index"] is not None) and (kwargs["task_index"] is not None):
-                array_status_tasks = Progress.parseToList(self.status_tasks)
+                array_status_tasks = inft.parseToList(self.status_tasks)
 
                 array_status_tasks[kwargs["lesson_index"]][kwargs["task_index"]] = kwargs["status_code"]
 
-                self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
+                self.status_tasks = inft.joinToString(array_status_tasks)
 
                 percent = self.lessonPercentage(kwargs.lesson.index)
                 self.lessons = self.lessonManage(kwargs.lesson.index, percent)
@@ -162,11 +172,11 @@ class Progress(models.Model):
 
     def openLesson(self, lesson):
         if lesson is not None:
-            array_status_tasks = Progress.parseToList(self.status_tasks)
+            array_status_tasks = inft.parseToList(self.status_tasks)
 
             array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
 
-            self.status_tasks = '.'.join([' '.join(i) for i in array_status_tasks])
+            self.status_tasks = inft.joinToString(array_status_tasks)
 
             self.lessons = self.lessonManage(lesson.index, 0)
 
@@ -190,8 +200,8 @@ class Progress(models.Model):
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
 
-        self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
-        self.lessons = " ".join(["0" for i in range(len(lessons))])
+        self.status_tasks = inft.joinToString(status_tasks)
+        self.lessons = inft.joinToString(lessons)
         self.is_bought = True
         self.save()
 
@@ -200,7 +210,6 @@ class Progress(models.Model):
         lessons = 0
         if param : lessons = course.lessons.exclude(access=Lesson.accesses.closed)
         else: lessons = course.lessons.filter(access=Lesson.accesses.available)
-        count_lessons = len(lessons)
 
         status_tasks = list()
 
@@ -210,8 +219,8 @@ class Progress(models.Model):
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
         
-        _status_tasks = '.'.join([' '.join(i) for i in status_tasks])
-        _lessons = " ".join(["0" for i in range(count_lessons)])
+        _status_tasks = inft.joinToString(status_tasks)
+        _lessons = inft.joinToString(lessons)
         progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress
 
@@ -261,6 +270,11 @@ class Chat(models.Model):
     url = models.CharField("Ссылка", max_length=256)
     image = models.ImageField(null=True, blank=True, upload_to="images", default=None) #!!!!!!!!!!!!!!!!
 
+    @classmethod
+    def create(cls, name, url):
+        chat = cls(name=name, url=url)
+        return chat
+
     def __str__(self):
         return self.name
 
@@ -278,7 +292,7 @@ class Course(models.Model):
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
     users = models.ManyToManyField(User, related_name="Ученики+")
     trials = models.ManyToManyField(User, related_name="Триалы+")
-    lessons = models.ManyToManyField(Lesson, related_name="Уроки+")
+    lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
 
     def __str__(self):
@@ -288,6 +302,16 @@ class Course(models.Model):
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
 
+@receiver(m2m_changed, sender=Course.chat.through)
+def post_request(sender, instance, action, pk_set, **kwargs):
+    if action == "post_add":
+        if instance.id not in pk_set:
+            e1 = Chat.create(name="hui1", url="")
+            e2 = Chat.create(name="hui1", url="")
+            e3 = Chat.create(name="hui1", url="")
+            e1.save() ; e2.save() ; e3.save()
+            instance.chat.add(e1) ; instance.chat.add(e2) ; instance.chat.add(e3)
+            instance.save()
 
 class Admin(User):
     def __str__(self):
