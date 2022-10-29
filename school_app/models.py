@@ -172,6 +172,7 @@ class Progress(models.Model):
 
             self.whole_course = round(self.status_task.count('1')/
                     (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+            self.save()
 
     # Покупка курсов
     @overload
@@ -192,7 +193,7 @@ class Progress(models.Model):
         self.status_tasks = '.'.join([' '.join(i) for i in status_tasks])
         self.lessons = " ".join(["0" for i in range(len(lessons))])
         self.is_bought = True
-
+        self.save()
 
     @classmethod
     def create(cls, course, param=False):
