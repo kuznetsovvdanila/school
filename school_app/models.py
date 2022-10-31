@@ -342,7 +342,14 @@ class Course(models.Model):
     trials = models.ManyToManyField(User, related_name="Триалы+")
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
-    
+
+    def UpdateLessons(self):
+        lessons = self.lessons.all()
+        for i in range(len(lessons)):
+            lessons[i].id = lessons[i].setId(self.id)
+            lessons[i].index = i
+        self.save()
+
     def __str__(self):
         return self.name
 
