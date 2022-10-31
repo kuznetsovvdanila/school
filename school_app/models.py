@@ -4,8 +4,9 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
+from traitlets import default
 
 # Create your models here.
 
@@ -284,17 +285,25 @@ class Chat(models.Model):
 
 
 class Course(models.Model):
-    is_active = models.BooleanField("Активный", default=True)
+    #Main
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание",max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
     value = models.IntegerField("Стоимость", default=0)
+
+    #Atributes
+    duration = models.DurationField("Длительность", blank=True, default=timedelta(days=20, hours=10))
+    date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
+    repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
+    is_active = models.BooleanField("Активный", default=True)
+
+    #M2M
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
     users = models.ManyToManyField(User, related_name="Ученики+")
     trials = models.ManyToManyField(User, related_name="Триалы+")
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
-
+    
     def __str__(self):
         return self.name
 
@@ -310,7 +319,7 @@ def post_request(sender, instance, action, pk_set, **kwargs):
             e2 = Chat.create(name="hui1", url="")
             e3 = Chat.create(name="hui1", url="")
             e1.save() ; e2.save() ; e3.save()
-            instance.chat.add(e1) ; instance.chat.add(e2) ; instance.chat.add(e3)
+            instance.chat.add(e1, e2, e3)
             instance.save()
 
 class Admin(User):

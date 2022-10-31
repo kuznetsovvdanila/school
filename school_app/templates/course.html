@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<head>
+    <title>Main</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
+<body>
+    {% for lesson in lessons %}
+        <a href="{% url 'lesson' course.id lesson.id %}">
+            <div class="flex container">
+                <div class="semiconatiner1 title flex">{{ lesson.index }}. {{ lesson.name }}</div>
+            </div>
+        </a>
+    {% endfor %}
+</body>
+</html>
