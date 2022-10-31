@@ -25,6 +25,13 @@ class intf():
         elif array[0] is not list:
             return " ".join(["0" for i in range(len(array))])
 
+    @staticmethod
+    def statusCode(status_code : bool) -> int:
+        if status_code:
+            return 1 #правильный ответ
+        else:
+            return 2 #неправильный ответ
+
 class Push(models.Model):
 
     class types(models.TextChoices):
@@ -215,11 +222,12 @@ class Progress(models.Model):
                     (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
             self.save()
 
-    # Покупка курсов
+    # вызывается из вивсов при покупке пользователем курса, если пользователь не отправлял таски(нет progress)
     @overload
     def bought(course):
         create(course, True)
-    
+
+    # вызывается из вивсов при покупке пользователем курса, если пользователь отправлял таски(есть progress)
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
@@ -283,7 +291,7 @@ class User(AbstractBaseUser):
         lesson_index = pathlist[1].split("_")[1]
         task_index = pathlist[2]
         progress = self.progresses.get(id_course=id_course)
-        progress.taskProgress(lesson_index=lesson_index, task_index=task_index, status_code=status_code)
+        progress.taskProgress(lesson_index=lesson_index, task_index=task_index, status_code=intf.statusCode(status_code))
 
     def __str__(self):
         return self.email
@@ -348,6 +356,11 @@ class Course(models.Model):
         for i in range(len(lessons)):
             lessons[i].id = lessons[i].setId(self.id)
             lessons[i].index = i
+        self.save()
+
+    # вызывается из вивсов при покупке пользователем курса
+    def AddUser(self, user):
+        self.users.add(user)
         self.save()
 
     def __str__(self):
