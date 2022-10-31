@@ -3,7 +3,8 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.csrf import csrf_failure
 from django.views.generic import DetailView, ListView, View
-from .models import Course, Lesson
+from .models import Course, Lesson, User
+from django.contrib.auth import authenticate, login, logout, user_logged_in, get_user
 
 # def main(request):
 #     context = {'pivo': 'tozepivo'}
@@ -44,10 +45,27 @@ class LessonInfo(View):
 class TaskInfo(View):
 
     def get(self, request, pk, pk2, pk3):
+        user = User.objects.get(id=0)
+        login(request, user)
         course = Course.objects.get(id=pk)
         lesson = course.lessons.get(id=pk2)
         task = lesson.homework.tasks.get(id=pk3)
         return render(request, "task.html", {"task": task})
+    
+    def post(self, request, pk, pk2, pk3):
+        course = Course.objects.get(id=pk)
+        lesson = course.lessons.get(id=pk2)
+        task = lesson.homework.tasks.get(id=pk3)
+        context = {"task": task}
+
+        user = request.user
+        answer = request.POST.get(name="answer")
+        path = request.path
+        print(user.id)
+        boolean = task.check_answer(user=user, answer=answer, path=path)
+
+        context.update({"bool": boolean})
+        return render(request, "task.html", context)
 
 def csrf_failure(request, reason=""):
     context = {'pivo': 'otsosite chlen'}
