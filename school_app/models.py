@@ -4,13 +4,12 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
-from traitlets import default
 
 # Create your models here.
 
-class inft():
+class intf():
     @staticmethod
     def parseToList(tasks : str) -> list:
         Array = tasks.split('.')
@@ -141,47 +140,51 @@ class Progress(models.Model):
     # tasks, status_tasks
 
     def lessonPercentage(self, index : int) -> int:
-        status_tasks = inft.parseToList(self.status_tasks)
+        status_tasks = intf.parseToList(self.status_tasks)
         percent = round(100*status_tasks[index].count('1')/len(status_tasks[index]))
         return percent
 
     def lessonManage(self, index : int, percent : int) -> str:
-        Array = self.lesson.split(" ")
+        Array = self.lessons.split(" ")
         if index == len(Array):
             Array.append(percent)
         else:
             Array[index] = percent
         return " ".join(Array)
 
-    def save(self, *args, **kwargs):
+    def save_progress(self, lesson_index, task_index, status_code):
         # Для обновления по результатам выполнения одного Taska
-        # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
-        if len(kwargs) != 0:
-            if (kwargs["lesson_index"] is not None) and (kwargs["task_index"] is not None):
-                array_status_tasks = inft.parseToList(self.status_tasks)
+        # Требуемые поля: status_code, lesson_index, task_index.
 
-                array_status_tasks[kwargs["lesson_index"]][kwargs["task_index"]] = kwargs["status_code"]
+        if (lesson_index is not None) and (task_index is not None):
+            array_status_tasks = intf.parseToList(self.status_tasks)
 
-                self.status_tasks = inft.joinToString(array_status_tasks)
+            array_status_tasks[lesson_index][task_index] = status_code
 
-                percent = self.lessonPercentage(kwargs.lesson.index)
-                self.lessons = self.lessonManage(kwargs.lesson.index, percent)
+            self.status_tasks = intf.joinToString(array_status_tasks)
 
-                self.whole_course = round(self.status_task.count('1')/
-                        (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+            percent = self.lessonPercentage(lesson_index)
+            self.lessons = self.lessonManage(lesson_index, percent)
+
+            self.whole_course = round(self.status_tasks.count('1') /
+                                      (len(self.status_tasks) - self.status_tasks.count(
+                                          ' ') - self.status_tasks.count('.')))
+            self.save()
+
+    def save(self, *args, **kwargs):
         super(Progress, self).save(*args, **kwargs)
 
     def openLesson(self, lesson):
         if lesson is not None:
-            array_status_tasks = inft.parseToList(self.status_tasks)
+            array_status_tasks = intf.parseToList(self.status_tasks)
 
             array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
 
-            self.status_tasks = inft.joinToString(array_status_tasks)
+            self.status_tasks = intf.joinToString(array_status_tasks)
 
             self.lessons = self.lessonManage(lesson.index, 0)
 
-            self.whole_course = round(self.status_task.count('1')/
+            self.whole_course = round(self.status_tasks.count('1')/
                     (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
             self.save()
 
@@ -201,8 +204,8 @@ class Progress(models.Model):
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
 
-        self.status_tasks = inft.joinToString(status_tasks)
-        self.lessons = inft.joinToString(lessons)
+        self.status_tasks = intf.joinToString(status_tasks)
+        self.lessons = intf.joinToString(lessons)
         self.is_bought = True
         self.save()
 
@@ -220,8 +223,8 @@ class Progress(models.Model):
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
         
-        _status_tasks = inft.joinToString(status_tasks)
-        _lessons = inft.joinToString(lessons)
+        _status_tasks = intf.joinToString(status_tasks)
+        _lessons = intf.joinToString(lessons)
         progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress
 
@@ -285,25 +288,17 @@ class Chat(models.Model):
 
 
 class Course(models.Model):
-    #Main
+    is_active = models.BooleanField("Активный", default=True)
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание",max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
     value = models.IntegerField("Стоимость", default=0)
-
-    #Atributes
-    duration = models.DurationField("Длительность", blank=True, default=timedelta(days=20, hours=10))
-    date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
-    repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
-    is_active = models.BooleanField("Активный", default=True)
-
-    #M2M
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
     users = models.ManyToManyField(User, related_name="Ученики+")
     trials = models.ManyToManyField(User, related_name="Триалы+")
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
-    
+
     def __str__(self):
         return self.name
 
@@ -319,7 +314,7 @@ def post_request(sender, instance, action, pk_set, **kwargs):
             e2 = Chat.create(name="hui1", url="")
             e3 = Chat.create(name="hui1", url="")
             e1.save() ; e2.save() ; e3.save()
-            instance.chat.add(e1, e2, e3)
+            instance.chat.add(e1) ; instance.chat.add(e2) ; instance.chat.add(e3)
             instance.save()
 
 class Admin(User):
