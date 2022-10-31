@@ -6,7 +6,6 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
-from traitlets import default
 
 # Create your models here.
 
@@ -102,7 +101,12 @@ class Task(models.Model):
 
 class Homework(models.Model):
     name = models.CharField("Название", max_length=32)
-    tasks = models.ManyToManyField(Task, related_name="Задания+")
+    tasks = models.ManyToManyField(Task, related_name="Задания+", blank=True)
+
+    @classmethod
+    def create(cls, name):
+        homework = cls(name=name)
+        return homework
 
     def __str__(self):
         return self.name
@@ -122,7 +126,7 @@ class Lesson(models.Model):
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание", max_length=2048)
     link = models.CharField("Ссылка на ютуб", max_length=256)
-    homework = models.ForeignKey(Homework, on_delete=models.CASCADE)
+    homework = models.ForeignKey(Homework, on_delete=models.SET_NULL, blank=True, null=True)
     files = models.ManyToManyField(FileLesson, related_name="Файлы+", blank=True)
     index = models.IntegerField("Индекс внутри курса", default=0)
     slug = models.SlugField("Часть url", blank=True)
@@ -140,9 +144,12 @@ class Lesson(models.Model):
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
 
-@receiver(post_save, sender=Lesson)
+@receiver(post_init, sender=Lesson)
 def postRequestFields(sender, instance, **kwargs):
     instance.slug = instance.name + "_" + str(instance.id)
+    homework = Homework.create(name=instance.name)
+    homework.save()
+    instance.homework = homework
     instance.save()
 
 class Progress(models.Model):
@@ -335,15 +342,6 @@ class Course(models.Model):
     trials = models.ManyToManyField(User, related_name="Триалы+")
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
-
-    def save(self, *args, **kwargs):
-        # Для обновления по результатам выполнения одного Taska
-        # Требуемые поля: status_code, lesson_index, task_index. Через kwargs
-        lessons = self.lessons.all()
-        for lesson in lessons:
-            lesson.setId(self.id)
-        super(Course, self).save(*args, **kwargs)
-
     
     def __str__(self):
         return self.name
@@ -363,7 +361,7 @@ def postRequestM2M(sender, instance, action, pk_set, **kwargs):
             instance.chat.add(e1, e2, e3)
             instance.save()
 
-@receiver(post_save, sender=Course)
+@receiver(post_init, sender=Course)
 def postRequestFields(sender, instance, **kwargs):
     instance.slug = instance.name + "_" + str(instance.id)
     instance.save()
