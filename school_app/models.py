@@ -7,32 +7,40 @@ from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
 
+
 # Create your models here.
 
 class intf():
     @staticmethod
-    def parseToList(tasks : str) -> list:
+    def parseToList(tasks: str) -> list:
         Array = tasks.split('.')
         for i in range(len(Array)):
             Array[i] = Array[i].split(' ')
-        #print('.'.join([' '.join(i) for i in Array]))
+        # print('.'.join([' '.join(i) for i in Array]))
         return Array
-    
+
     @staticmethod
-    def joinToString(array : list):
+    def joinToString(array: list):
         if array[0] is list:
             return '.'.join([' '.join(i) for i in array])
         elif array[0] is not list:
             return " ".join(["0" for i in range(len(array))])
 
-class Push(models.Model):
+    @staticmethod
+    def statusCode(status_code: bool) -> int:
+        if status_code:
+            return 1  # правильный ответ
+        else:
+            return 2  # неправильный ответ
 
+
+class Push(models.Model):
     class types(models.TextChoices):
         admin = '0', _('AdminPush')
         homework = '1', _('HomeworkPush')
         stream = '2', _('StreamPush')
         course = '3', _('CoursePush')
-    
+
     content = models.CharField("Содержание", max_length=256)
     type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.admin)
 
@@ -53,6 +61,7 @@ class Push(models.Model):
         verbose_name = "Уведомление"
         verbose_name_plural = "Уведомления"
 
+
 class FileTask(models.Model):
     name = models.CharField("Название", max_length=128)
     file = models.FileField("Файл", null=True, blank=True, upload_to="files", default=None)
@@ -63,6 +72,7 @@ class FileTask(models.Model):
     class Meta:
         verbose_name = "Файл Задания"
         verbose_name_plural = "Файлы Задания"
+
 
 class FileLesson(models.Model):
     name = models.CharField("Название", max_length=128)
@@ -118,10 +128,10 @@ class Homework(models.Model):
 
 class Lesson(models.Model):
     class accesses(models.TextChoices):
-        available = '0', _('Available')
+        available = '0', _('Available')  #
         partavailable = '1', _('PartAvailable')
         closed = '2', _('Closed')
-    
+
     id_course = models.IntegerField("ID курса", default=0)
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание", max_length=2048)
@@ -131,7 +141,7 @@ class Lesson(models.Model):
     index = models.IntegerField("Индекс внутри курса", default=0)
     slug = models.SlugField("Часть url", blank=True)
 
-    access = models.CharField("Уровень доступа",  default=accesses.closed, choices=accesses.choices, max_length=1)
+    access = models.CharField("Уровень доступа", default=accesses.closed, choices=accesses.choices, max_length=1)
 
     def setId(self, id, index):
         self.id_course = id
@@ -154,26 +164,29 @@ def postRequestFields(sender, instance, created, **kwargs):
         instance.homework = homework
         instance.save()
 
+
 class Progress(models.Model):
     id_course = models.IntegerField("ID курса", default=0)
     is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
-    lessons = models.CharField("Уроки %", max_length=512, default=" ") # may be change to 1024
+    lessons = models.CharField("Уроки %", max_length=512, default=" ")  # may be change to 1024
     status_tasks = models.CharField("Задачи курса (статус)", max_length=8192, default=" ")
 
     # 67 50 90 for lessons : split(" ")
     # 0 1 2.3 4 5 for tasks : split(".") : split(" ")
     # 0 1 2.0 1 0 for status_tasks : split(".") : split(" ")
     # to status_tasks : 0 is default, 1 is completed, 2 is wrong
-    
+
     # tasks, status_tasks
 
-    def lessonPercentage(self, index : int) -> int:
+    # Вызывается из , возвращает процент выполненных task по уроку
+    def lessonPercentage(self, index: int) -> int:
         status_tasks = intf.parseToList(self.status_tasks)
-        percent = round(100*status_tasks[index].count('1')/len(status_tasks[index]))
+        percent = round(100 * status_tasks[index].count('1') / len(status_tasks[index]))
         return percent
 
-    def lessonManage(self, index : int, percent : int) -> str:
+    # Вызывается из , возвращает массив с процентами по lesson`ам
+    def lessonManage(self, index: int, percent: int) -> str:
         Array = self.lesson.split(" ")
         if index == len(Array):
             Array.append(percent)
@@ -181,10 +194,9 @@ class Progress(models.Model):
             Array[index] = percent
         return " ".join(Array)
 
+    # Вызываетя из updateTaskProgress, обновляет статусы тасков и прогрессы по курсу и урокам
+    # Для обновления по результатам выполнения одного Taska
     def taskProgress(self, lesson_index, task_index, status_code):
-        # Для обновления по результатам выполнения одного Taska
-        # Требуемые поля: status_code, lesson_index, task_index.
-
         if (lesson_index is not None) and (task_index is not None):
             array_status_tasks = intf.parseToList(self.status_tasks)
 
@@ -200,6 +212,10 @@ class Progress(models.Model):
                                           ' ') - self.status_tasks.count('.')))
             self.save()
 
+    def save(self, args, **kwargs):
+        super(Progress, self).save(args, **kwargs)
+
+    # Вызывается из !!!!!!!!!!!!!!!!!
     def openLesson(self, lesson):
         if lesson is not None:
             array_status_tasks = intf.parseToList(self.status_tasks)
@@ -210,15 +226,17 @@ class Progress(models.Model):
 
             self.lessons = self.lessonManage(lesson.index, 0)
 
-            self.whole_course = round(self.status_task.count('1')/
-                    (len(self.status_tasks)-self.status_tasks.count(' ')-self.status_tasks.count('.')))
+            self.whole_course = round(self.status_task.count('1') /
+                                      (len(self.status_tasks) - self.status_tasks.count(' ') - self.status_tasks.count(
+                                          '.')))
             self.save()
 
-    # Покупка курсов
+    # вызывается из вивсов при покупке пользователем курса, если пользователь не отправлял таски(нет progress)
     @overload
     def bought(course):
-        create(course, True)
-    
+        create(course, True)  # параметр доступа для create
+
+    # вызывается из вивсов при покупке пользователем курса, если пользователь отправлял таски(есть progress)
     @overload
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
@@ -235,11 +253,14 @@ class Progress(models.Model):
         self.is_bought = True
         self.save()
 
+    # вызывается из bought при покупке курса без Progress
     @classmethod
-    def create(cls, course, param=False):
+    def create(cls, course, param=False):  # параметр передается из первого bought
         lessons = 0
-        if param : lessons = course.lessons.exclude(access=Lesson.accesses.closed)
-        else: lessons = course.lessons.filter(access=Lesson.accesses.available)
+        if param:
+            lessons = course.lessons.exclude(access=Lesson.accesses.closed)
+        else:
+            lessons = course.lessons.filter(access=Lesson.accesses.available)  # без оплаты записываются открытые уроки
 
         status_tasks = list()
 
@@ -248,12 +269,11 @@ class Progress(models.Model):
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
-        
+
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
         progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param)
         return progress
-
 
     def __str__(self):
         return str(self.id_course)
@@ -261,6 +281,7 @@ class Progress(models.Model):
     class Meta:
         verbose_name = "Прогресс по курсу"
         verbose_name_plural = "Прогресс по курсам"
+
 
 class User(AbstractBaseUser):
     is_active = models.BooleanField("Активный", default=True)
@@ -276,13 +297,15 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    # вызывается из вивсов, записывает данные по заданию, вызывает taskProgress, где прогресс обновляется
     def updateTaskProgress(self, path: str, status_code: bool):
         pathlist = path.split('/')
         id_course = pathlist[0].split("_")[1]
         lesson_index = pathlist[1].split("_")[1]
         task_index = pathlist[2]
         progress = self.progresses.get(id_course=id_course)
-        progress.taskProgress(lesson_index=lesson_index, task_index=task_index, status_code=status_code)
+        progress.taskProgress(lesson_index=lesson_index, task_index=task_index,
+                              status_code=intf.statusCode(status_code))
 
     def __str__(self):
         return self.email
@@ -306,7 +329,7 @@ class Teacher(User):
 class Chat(models.Model):
     name = models.CharField("Название", max_length=64)
     url = models.CharField("Ссылка", max_length=256)
-    image = models.ImageField(null=True, blank=True, upload_to="images", default=None) #!!!!!!!!!!!!!!!!
+    image = models.ImageField(null=True, blank=True, upload_to="images", default=None)  # !!!!!!!!!!!!!!!!
 
     @classmethod
     def create(cls, name, url):
@@ -322,35 +345,39 @@ class Chat(models.Model):
 
 
 class Course(models.Model):
-    #Main
+    # Main
     name = models.CharField("Название", max_length=128)
-    description = models.CharField("Описание",max_length=8192)
+    description = models.CharField("Описание", max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
     value = models.IntegerField("Стоимость", default=0)
     slug = models.SlugField("Часть url", blank=True)
 
-    #Atributes
+    # Atributes
     duration = models.DurationField("Длительность", blank=True, default=timedelta(days=20, hours=10))
     date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
     repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
     is_active = models.BooleanField("Активный", default=True)
 
-    #M2M
+    # M2M
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
     users = models.ManyToManyField(User, related_name="Ученики+")
     trials = models.ManyToManyField(User, related_name="Триалы+")
-    lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
+    lessons = models.ManyToManyField(Lesson, related_name="Уроки+")  # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
 
+    # вызывается по кнопке через админку, добавляет лессоны
     def updateLessons(self):
         lessons = self.lessons.all()
-        print(lessons)
         for i in range(len(lessons)):
             lessons[i].setId(self.id, i)
     
     def save(self, *args, **kwargs):
-        self.is_active = True
         super(Course, self).save(*args, **kwargs)
+
+    # вызывается из вивсов при покупке пользователем курса
+    def addUser(self, user):
+        self.users.add(user)
+        self.save()
 
     def __str__(self):
         return self.name
@@ -378,6 +405,7 @@ def postRequestFields(sender, instance, created, **kwargs):
     if created:
         instance.slug = "_" + str(instance.id)
         instance.save()
+
 
 class Admin(User):
     def __str__(self):
