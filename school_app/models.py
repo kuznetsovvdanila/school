@@ -214,7 +214,7 @@ class Progress(models.Model):
     def save(self, args, **kwargs):
         super(Progress, self).save(args, **kwargs)
 
-    # Вызывается из !!!!!!!!!!!!!!
+    # Вызывается из !!!!!!!!!!!!!!!!!
     def openLesson(self, lesson):
         if lesson is not None:
             array_status_tasks = intf.parseToList(self.status_tasks)
