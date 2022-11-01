@@ -145,13 +145,14 @@ class Lesson(models.Model):
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
 
-@receiver(post_init, sender=Lesson)
-def postRequestFields(sender, instance, **kwargs):
-    instance.slug = instance.name + "_" + str(instance.id)
-    homework = Homework.create(name=instance.name)
-    homework.save()
-    instance.homework = homework
-    instance.save()
+@receiver(post_save, sender=Lesson)
+def postRequestFields(sender, instance, created, **kwargs):
+    if created:
+        instance.slug = instance.name + "_" + str(instance.id)
+        homework = Homework.create(name=instance.name)
+        homework.save()
+        instance.homework = homework
+        instance.save()
 
 class Progress(models.Model):
     id_course = models.IntegerField("ID курса", default=0)
