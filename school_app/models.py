@@ -377,6 +377,7 @@ def postRequestM2M(sender, instance, action, pk_set, **kwargs):
 def postRequestFields(sender, instance, created, **kwargs):
     if created:
         instance.slug = "_" + str(instance.id)
+        instance.save()
 
 class Admin(User):
     def __str__(self):
