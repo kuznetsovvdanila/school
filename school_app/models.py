@@ -133,8 +133,9 @@ class Lesson(models.Model):
 
     access = models.CharField("Уровень доступа",  default=accesses.closed, choices=accesses.choices, max_length=1)
 
-    def setId(self, id):
+    def setId(self, id, index):
         self.id_course = id
+        self.index = index
         self.save()
 
     def __str__(self):
@@ -197,9 +198,6 @@ class Progress(models.Model):
                                       (len(self.status_tasks) - self.status_tasks.count(
                                           ' ') - self.status_tasks.count('.')))
             self.save()
-
-    def save(self, args, **kwargs):
-        super(Progress, self).save(args, **kwargs)
 
     def openLesson(self, lesson):
         if lesson is not None:
@@ -343,12 +341,15 @@ class Course(models.Model):
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+") # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
 
-    def UpdateLessons(self):
+    def updateLessons(self):
         lessons = self.lessons.all()
+        print(lessons)
         for i in range(len(lessons)):
-            lessons[i].id = lessons[i].setId(self.id)
-            lessons[i].index = i
-        self.save()
+            lessons[i].setId(self.id, i)
+    
+    def save(self, *args, **kwargs):
+        self.is_active = True
+        super(Course, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -357,21 +358,24 @@ class Course(models.Model):
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
 
-@receiver(m2m_changed, sender=Course.chat.through)
+@receiver(m2m_changed, sender=Course.lessons.through)
 def postRequestM2M(sender, instance, action, pk_set, **kwargs):
-    if action == "post_add":
-        if instance.id not in pk_set:
-            e1 = Chat.create(name="hui1", url="")
-            e2 = Chat.create(name="hui1", url="")
-            e3 = Chat.create(name="hui1", url="")
-            e1.save() ; e2.save() ; e3.save()
-            instance.chat.add(e1, e2, e3)
-            instance.save()
+    instance.updateLessons()
 
-@receiver(post_init, sender=Course)
-def postRequestFields(sender, instance, **kwargs):
-    instance.slug = instance.name + "_" + str(instance.id)
-    instance.save()
+# @receiver(m2m_changed, sender=Course.chat.through)
+# def postRequestM2M(sender, instance, action, pk_set, **kwargs):
+#     if action == 'post_add':
+#         if instance.id not in pk_set:
+#             e1 = Chat.create(name="hui1", url="")
+#             e2 = Chat.create(name="hui1", url="")
+#             e3 = Chat.create(name="hui1", url="")
+#             e1.save() ; e2.save() ; e3.save()
+#             instance.chat.add(e1, e2, e3)
+
+@receiver(post_save, sender=Course)
+def postRequestFields(sender, instance, created, **kwargs):
+    if created:
+        instance.slug = "_" + str(instance.id)
 
 class Admin(User):
     def __str__(self):
