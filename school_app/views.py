@@ -66,10 +66,3 @@ class TaskInfo(View):
 
         context.update({"bool": boolean})
         return render(request, "task.html", context)
-
-def csrf_failure(request, reason=""):
-    context = {'pivo': 'otsosite chlen'}
-    if request.method == 'POST':
-        print(request.POST.get('name'))
-        print('я прошел сквозь стену')
-    return render(request, 'index.html', context)

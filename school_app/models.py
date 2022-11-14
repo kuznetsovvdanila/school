@@ -34,6 +34,16 @@ class intf():
             return 2  # неправильный ответ
 
 
+class Tag(models.Model):
+    name = models.CharField("Название", max_length=64, unique=True)
+
+    def str(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Тэг"
+        verbose_name_plural = "Тэги"
+
 class Push(models.Model):
     class types(models.TextChoices):
         admin = '0', _('AdminPush')
@@ -345,18 +355,25 @@ class Chat(models.Model):
 
 
 class Course(models.Model):
+
+    class condition(models.IntegerChoices):
+        waiting_for_begin = 0, _('в ожидании')
+        is_active = 1, _('активен')
+        is_archive = 2, _('архив')
+
     # Main
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание", max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
-    value = models.IntegerField("Стоимость", default=0)
+    value = models.IntegerField("Стоимость", default=condition.waiting_for_begin, choices=condition.choices, blank=True)
     slug = models.SlugField("Часть url", blank=True)
 
     # Atributes
     duration = models.DurationField("Длительность", blank=True, default=timedelta(days=20, hours=10))
     date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
+    lesson_stream_duration = models.IntegerField("Суммарная длительность уроков", default=100, help_text="длительность записана в часах")
     repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
-    is_active = models.BooleanField("Активный", default=True)
+    is_active = models.IntegerField("Активный", default=True)
 
     # M2M
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
@@ -364,6 +381,11 @@ class Course(models.Model):
     trials = models.ManyToManyField(User, related_name="Триалы+")
     lessons = models.ManyToManyField(Lesson, related_name="Уроки+")  # Teacher have access
     chat = models.ManyToManyField(Chat, related_name="Чат+")
+    tags = models.ManyToManyField(Tag, related_name="Тэги+")
+
+    @property
+    def lessonsCount(self) -> int:
+        return len(self.lessons.all())
 
     # вызывается по кнопке через админку, добавляет лессоны
     def updateLessons(self):
