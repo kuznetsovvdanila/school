@@ -76,7 +76,7 @@ def getLesson(request):
     except KeyError:
         return Response(status=500)
 
-#   Подгрузка при заходе на урок
+#   Подгрузка при заходе на таск
 #   request ( body{ "course_id" : CourseID, "lesson_index" : LessonIndex,  "task_index" : TaskIndex} )
 @api_view(("POST",))
 def getTask(request):
@@ -89,6 +89,46 @@ def getTask(request):
             course_instance = Course.objects.get(id=course_id)
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
+            serializer = TaskFileSerializer(instance=task, many=False)
+            return Response(serializer.data)
+        else: return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+
+#   не доделал
+#   Подгрузка при заходе на таск
+#   request ( body{ "login" : login, "password" : password} )
+@api_view(("POST",))
+def Authentication(request):
+    context = list()
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        (login, password) = (int(request.POST.get("login")), int(request.POST.get("password")))
+        if getApi is not None:
+            user_instance = User.objects.get(email=login) if (User.objects.get(email=login) is not None) else User.objects.get(phone_number=login)
+            if (user_instance.password.encode == password):
+                serializer = UserSerializer(instance=user_instance, many=False)
+                return Response(serializer.data)
+            serializer = TaskFileSerializer(instance=user_instance, many=False)
+            return Response(serializer.data)
+        else: return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+
+#   не доделал
+#   Подгрузка при заходе на таск
+#   request ( body{ "login" : login, "password" : password,  "password_complete" : password_c} )
+@api_view(("POST",))
+def Registration(request):
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        (login, password, password_complete) = (int(request.POST.get("login")), 
+        int(request.POST.get("password")), int(request.POST.get("password_complete")))
+        if getApi is not None:
+            user_instance = User.objects.get(email=login) if (User.objects.get(email=login) is not None) else User.objects.get(phone_number=login)
+            #if user_instance.
             serializer = TaskFileSerializer(instance=task, many=False)
             return Response(serializer.data)
         else: return Response(status_code=404)

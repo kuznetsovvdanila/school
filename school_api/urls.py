@@ -7,5 +7,6 @@ urlpatterns = [
     path('course/', views.getCourse),
     path('course/lessons', views.getAllLessons),
     path('point/course/lesson', views.getLesson),
-    path('point/course/lesson/task', views.getTask)
+    path('point/course/lesson/task', views.getTask),
+    path('user/auth', views.Authentication)
 ]

@@ -51,6 +51,7 @@ class Push(models.Model):
         stream = '2', _('StreamPush')
         course = '3', _('CoursePush')
 
+    created = models.DateTimeField("Создан", auto_created=True)
     content = models.CharField("Содержание", max_length=256)
     type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.admin)
 
@@ -301,9 +302,9 @@ class User(AbstractBaseUser):
     name = models.CharField("Имя", max_length=32, default="")
     surname = models.CharField("Фамилия", max_length=64, default="")
     email = models.EmailField("Почта", max_length=128)
+    phone_number = models.CharField("Номер телефона", max_length=32, default="")
     registered = models.DateTimeField("Зарегистрировался", default=datetime.now())
     notifications = models.ManyToManyField(Push, related_name="Уведомления+", blank=True)
-    my_courses = models.CharField("Доступные курсы", max_length=2048, blank=True)
     avatar = models.ImageField("Аватар", blank=True, default=None)
     progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
 
