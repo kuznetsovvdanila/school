@@ -138,7 +138,7 @@ class Homework(models.Model):
 
 class Lesson(models.Model):
     class accesses(models.TextChoices):
-        available = '0', _('Available')  #
+        available = '0', _('Available')
         partavailable = '1', _('PartAvailable')
         closed = '2', _('Closed')
 
@@ -152,6 +152,9 @@ class Lesson(models.Model):
     slug = models.SlugField("Часть url", blank=True)
 
     access = models.CharField("Уровень доступа", default=accesses.closed, choices=accesses.choices, max_length=1)
+
+    @property
+    def getTasks(self) -> int : return len(self.homework.tasks.all())
 
     def setId(self, id, index):
         self.id_course = id
@@ -365,7 +368,7 @@ class Course(models.Model):
     name = models.CharField("Название", max_length=128)
     description = models.CharField("Описание", max_length=8192)
     product_preview = models.CharField("Превью курса", max_length=2048)
-    value = models.IntegerField("Стоимость", default=condition.waiting_for_begin, choices=condition.choices, blank=True)
+    value = models.IntegerField("Стоимость", default=1)
     slug = models.SlugField("Часть url", blank=True)
 
     # Atributes
@@ -373,7 +376,7 @@ class Course(models.Model):
     date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
     lesson_stream_duration = models.IntegerField("Суммарная длительность уроков", default=100, help_text="длительность записана в часах")
     repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
-    is_active = models.IntegerField("Активный", default=True)
+    is_active = models.IntegerField("Активный",  default=condition.waiting_for_begin, choices=condition.choices, blank=True)
 
     # M2M
     teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
