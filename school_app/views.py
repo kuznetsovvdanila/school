@@ -6,20 +6,52 @@ from django.views.generic import DetailView, ListView, View
 from .models import Course, Lesson, User
 from django.contrib.auth import authenticate, login, logout, user_logged_in, get_user
 
-# def main(request):
-#     context = {'pivo': 'tozepivo'}
-#     if request.method == 'POST':
-#         print(request.POST.get('name'))
-#     courses = Course.objects.all()
-#     teacher = courses[0].teachers.all()[0]
-#     context.update({"teacher": teacher,
-#                     "courses": courses})
+from django.core.validators import email_re
+from django.utils.encoding import smart_unicode
+from django.utils.translation import ugettext_lazy as _
+import re
 
-#     #path = /idCourse_nameCourse/indexLesson_nameLesson/indexTask
-#     # course = Course.objects.create()
-#     # course = Course.create(*args)
-#     print(request.path)
-#     return render(request, 'main.html', context)
+# возвращает bool и User
+def authValid(login : str, password : str) -> tuple:
+    truth = False
+    user_instance = None
+    if str(login).count("@") == 1:
+        user_instance = User.objects.get(email=login)
+    else:
+        user_instance = User.objects.get(phone_number=login)
+    if user_instance is not None:
+        if (user_instance.check_password(password)):
+            truth = True
+    return truth, user_instance
+
+# возвращает tuple(check : bool, error_message : string, User.id : int)
+def regValid(login : str, password : str, password_complete : str) -> tuple:
+    truth = False
+    error_message = ""
+    user_instance = None
+
+     # Проверяем на соответствие поля "email"у
+    if email_re.search(smart_unicode(login)):
+        user_instance = User.objects.get(email=login)
+        if user_instance is None:
+            if password == password_complete:
+                user_instance = User(email=login, password=password)
+                user_instance.save()
+        else:
+            error_message = "Пользователь с таким email адресом уже существует"
+
+    # Проверяем на соответствие поля телефонному номеру
+    elif re.compile("^([0-9\(\)\/\+ \-]*)$").search(smart_unicode(login)):
+        user_instance = User.objects.get(phone_number=login)
+        if user_instance is None:
+            if password == password_complete:
+                user_instance = User(email=login, password=password)
+                user_instance.save()
+        else:
+            error_message = "Пользователь с таким номером мобильного телефона уже существует"
+    else:
+        error_message = "Login не соответствует существующему email или номеру мобильного телефона"
+    return (truth, error_message, (user_instance.id if user_instance is not None else None))
 
 class CourseList(View):
 

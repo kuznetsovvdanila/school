@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.serializers import ListSerializer
 
 from school_app.models import *
+from school_app.views import *
 from .serializers import *
 
 
@@ -41,7 +42,7 @@ def getCourse(request):
             for i in range(len(queryset)):
                 context.append(dict())
                 context[i].update(serializer.data[i])
-            return Response(serializer.data)
+            return Response(context)
         else: return Response(status_code=404)
     except KeyError:
         return Response(status=500)
@@ -95,42 +96,42 @@ def getTask(request):
     except KeyError:
         return Response(status=500)
 
-#   не доделал
-#   Подгрузка при заходе на таск
+#   Авторизация
 #   request ( body{ "login" : login, "password" : password} )
 @api_view(("POST",))
 def Authentication(request):
-    context = list()
+    context = list(1)
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (login, password) = (int(request.POST.get("login")), int(request.POST.get("password")))
+        (login, password) = (request.POST.get("login"), request.POST.get("password"))
         if getApi is not None:
-            user_instance = User.objects.get(email=login) if (User.objects.get(email=login) is not None) else User.objects.get(phone_number=login)
-            if (user_instance.password.encode == password):
+            (check, user_instance) = authValid(login, password)
+            if check:
                 serializer = UserSerializer(instance=user_instance, many=False)
-                return Response(serializer.data)
-            serializer = TaskFileSerializer(instance=user_instance, many=False)
-            return Response(serializer.data)
+                serializerNotify = UserNotificationsSerializer(instance=user_instance, many=False)
+                context[0].update(serializer.data)
+                context[0].update(serializerNotify.data)
+                return Response(context)
+            return Response(status_code=203)
         else: return Response(status_code=404)
     except KeyError:
         return Response(status=500)
 
-#   не доделал
-#   Подгрузка при заходе на таск
+#   Регистрация
 #   request ( body{ "login" : login, "password" : password,  "password_complete" : password_c} )
 @api_view(("POST",))
 def Registration(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (login, password, password_complete) = (int(request.POST.get("login")), 
-        int(request.POST.get("password")), int(request.POST.get("password_complete")))
+        (login, password, password_complete) = (request.POST.get("login"),
+            request.POST.get("password"), request.POST.get("password_complete"))
         if getApi is not None:
-            user_instance = User.objects.get(email=login) if (User.objects.get(email=login) is not None) else User.objects.get(phone_number=login)
-            #if user_instance.
-            serializer = TaskFileSerializer(instance=task, many=False)
-            return Response(serializer.data)
+            (check, error_message, id) = regValid(login, password, password_complete)
+            if check:
+                return Response({"complete": check, "id": id})
+            return Response({"error_message": error_message})
         else: return Response(status_code=404)
     except KeyError:
         return Response(status=500)

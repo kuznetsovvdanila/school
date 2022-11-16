@@ -308,6 +308,9 @@ class User(AbstractBaseUser):
     avatar = models.ImageField("Аватар", blank=True, default=None)
     progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
 
+    completed = models.BooleanField("Закончена авторизация", default=False, 
+            help_text="проверка на то закончил ли пользователь регистрацию")
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
