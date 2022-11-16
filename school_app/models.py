@@ -51,7 +51,7 @@ class Push(models.Model):
         stream = '2', _('StreamPush')
         course = '3', _('CoursePush')
 
-    created = models.DateTimeField("Создан", auto_created=True)
+    created = models.DateTimeField("Создан", default=datetime.now())
     content = models.CharField("Содержание", max_length=256)
     type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.admin)
 
@@ -346,10 +346,10 @@ class Teacher(User):
 class Chat(models.Model):
     name = models.CharField("Название", max_length=64)
     url = models.CharField("Ссылка", max_length=256)
-    image = models.ImageField(null=True, blank=True, upload_to="images", default=None)  # !!!!!!!!!!!!!!!!
+    image = models.ImageField(null=True, blank=True, upload_to="images", default=None) # !!!!!!!!!!!!!!!!
 
     @classmethod
-    def create(cls, name, url):
+    def create(cls, name : str, url : str):
         chat = cls(name=name, url=url)
         return chat
 

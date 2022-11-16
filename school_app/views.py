@@ -6,9 +6,7 @@ from django.views.generic import DetailView, ListView, View
 from .models import Course, Lesson, User
 from django.contrib.auth import authenticate, login, logout, user_logged_in, get_user
 
-from django.core.validators import email_re
-from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _
+from email_validate import validate
 import re
 
 # возвращает bool и User
@@ -31,7 +29,7 @@ def regValid(login : str, password : str, password_complete : str) -> tuple:
     user_instance = None
 
      # Проверяем на соответствие поля "email"у
-    if email_re.search(smart_unicode(login)):
+    if validate(login):
         user_instance = User.objects.get(email=login)
         if user_instance is None:
             if password == password_complete:
@@ -41,7 +39,7 @@ def regValid(login : str, password : str, password_complete : str) -> tuple:
             error_message = "Пользователь с таким email адресом уже существует"
 
     # Проверяем на соответствие поля телефонному номеру
-    elif re.compile("^([0-9\(\)\/\+ \-]*)$").search(smart_unicode(login)):
+    elif re.match(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', login):
         user_instance = User.objects.get(phone_number=login)
         if user_instance is None:
             if password == password_complete:
