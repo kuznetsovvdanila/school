@@ -1,4 +1,4 @@
-from django.template.backends import django
+import django.conf.urls.static
 from django.urls import include, path
 from rest_framework import routers
 
