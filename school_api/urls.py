@@ -1,6 +1,8 @@
+from django.template.backends import django
 from django.urls import include, path
 from rest_framework import routers
 
+from school import settings
 from . import views
 
 urlpatterns = [
@@ -9,4 +11,4 @@ urlpatterns = [
     path('point/course/lesson', views.getLesson),
     path('point/course/lesson/task', views.getTask),
     path('user/auth', views.Authentication)
-]
+] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
