@@ -5,26 +5,34 @@
     <script type="text/javascript" src="{% static 'js/jquery-3.5.1.min.js' %}"></script>
 </head>
 <body>
-    {% for course in courses %}
-        <a href="{% url 'index' course.id %}">
-            <div class="flex container">
-                <div class="semiconatiner1 title flex">{{ course.name }}</div>
-                <div class="semicontainer2 flex">
-                    <div class="avatar relative"><img src="{% static 'img/Temich.jpg' %}" alt=""></div>
-                    <div style="flex-direction: column; width:76%" class="relative">
-                        <div class="flex name">{{ course.teachers.all.get.name }}</div>
-                        <div class="flex text">{{ course.description }}</div>
+    <main class="flex column v_center">
+        {% for course in courses %}
+            <a href="{% url 'index' course.id %}" class="course_card flex column">
+                    <div class="course_card_name flex">
+                        {{ course.name }}
                     </div>
-                </div>
-                <div class="semicontainer3 flex">
-                    <div class="field">{{ course.duration }}</div>
-                    <div class="field">{{ course.date_open }}</div>
-                    <div class="field">{{ course.repeat }}</div>
-                    <div class="field">{{ course.is_active }}</div>
-                </div>
-            </div>
-        </a>
-    {% endfor %}
+                    <div class="course_card_inner_container flex">
+                        <div class="course_card_image">
+                            <img src="{% static 'img/Temich.jpg' %}" alt="">
+                        </div>
+                        <div class="">
+                            <div class="flex name">
+                                {{ course.teachers.all.get.name }}
+                            </div>
+                            <div class="flex text">
+                                {{ course.description }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="semicontainer3 flex">
+                        <div class="field">{{ course.duration }}</div>
+                        <div class="field">{{ course.date_open }}</div>
+                        <div class="field">{{ course.repeat }}</div>
+                        <div class="field">{{ course.is_active }}</div>
+                    </div>
+                </a>
+        {% endfor %}
+    </main>
 </body>
 <script type="text/javascript" src="{% static 'js/index.js' %}" ></script>
 </html>
