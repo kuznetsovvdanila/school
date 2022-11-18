@@ -165,7 +165,7 @@ def UpdateInfoAboutUserTest(request):
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         if getApi is not None:
-            queryset = User.objects[0]
+            queryset = User.objects.all()[0]
             serializer = UserSerializer(instance=queryset, many=False)
             serializerNotify = UserNotificationsSerializer(instance=queryset, many=False)
             context[0].update(serializer.data)
