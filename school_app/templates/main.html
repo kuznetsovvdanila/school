@@ -8,29 +8,29 @@
     <main class="flex column v_center">
         {% for course in courses %}
             <a href="{% url 'index' course.id %}" class="course_card flex column">
-                    <div class="course_card_name flex">
-                        {{ course.name }}
+                <div class="course_card_name flex">
+                    {{ course.name }}
+                </div>
+                <div class="course_card_inner_container flex">
+                    <div class="course_card_image" style="background-image: url('../static/img/Temich.jpg')">
+
                     </div>
-                    <div class="course_card_inner_container flex">
-                        <div class="course_card_image">
-                            <img src="{% static 'img/Temich.jpg' %}" alt="">
+                    <div class="course_card_description">
+                        <div class="flex name">
+                            {{ course.teachers.all.get.name }}
                         </div>
-                        <div class="">
-                            <div class="flex name">
-                                {{ course.teachers.all.get.name }}
-                            </div>
-                            <div class="flex text">
-                                {{ course.description }}
-                            </div>
+                        <div class="flex text">
+                            {{ course.description }}
                         </div>
                     </div>
-                    <div class="semicontainer3 flex">
-                        <div class="field">{{ course.duration }}</div>
-                        <div class="field">{{ course.date_open }}</div>
-                        <div class="field">{{ course.repeat }}</div>
-                        <div class="field">{{ course.is_active }}</div>
-                    </div>
-                </a>
+                </div>
+                <div class="semicontainer3 flex">
+                    <div class="field">{{ course.duration }}</div>
+                    <div class="field">{{ course.date_open }}</div>
+                    <div class="field">{{ course.repeat }}</div>
+                    <div class="field">{{ course.is_active }}</div>
+                </div>
+            </a>
         {% endfor %}
     </main>
 </body>
