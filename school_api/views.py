@@ -158,3 +158,21 @@ def UpdateInfoAboutUser(request):
     except KeyError:
         return Response(status=500)
 
+@api_view(("GET",))
+def UpdateInfoAboutUserTest(request):
+    context = [{}]
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        if getApi is not None:
+            queryset = User.objects[0]
+            serializer = UserSerializer(instance=queryset, many=False)
+            serializerNotify = UserNotificationsSerializer(instance=queryset, many=False)
+            context[0].update(serializer.data)
+            context[0].update(serializerNotify.data)
+            return Response(context)
+
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
