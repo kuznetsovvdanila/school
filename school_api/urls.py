@@ -11,5 +11,6 @@ urlpatterns = [
     path('course/lessons', views.getAllLessons),
     path('point/course/lesson', views.getLesson),
     path('point/course/lesson/task', views.getTask),
-    path('user/auth', views.Authentication)
+    path('user/auth', views.Authentication),
+    path("user/update", views.UpdateInfoAboutUser)
 ] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

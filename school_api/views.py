@@ -100,7 +100,7 @@ def getTask(request):
 #   request ( body{ "login" : login, "password" : password} )
 @api_view(("POST",))
 def Authentication(request):
-    context = list(1)
+    context = [{}]
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
@@ -135,3 +135,26 @@ def Registration(request):
         else: return Response(status_code=404)
     except KeyError:
         return Response(status=500)
+
+#   Дополнительные данные о пользовате
+#   request ( body{ "user_id": user_id, "name" : name, "surname" : surname,  "grade" : grade} )
+@api_view(("POST",))
+def UpdateInfoAboutUser(request):
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        (user_id, name, surname, grade) = (request.POST.get("user_id"), request.POST.get("name"),
+            request.POST.get("surname"), request.POST.get("grade"))
+        if getApi is not None:
+            user_instance = User.objects.get(id=user_id)
+            user_instance.name = name
+            user_instance.surname = surname
+            user_instance.grade = grade
+            user_instance.save()
+            response = {"name": name, "surname": surname, "grade": grade}
+            returnResponse(response)
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+

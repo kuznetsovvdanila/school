@@ -1,5 +1,7 @@
 from typing import overload
 from venv import create
+
+import django
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.dispatch import receiver
@@ -51,7 +53,7 @@ class Push(models.Model):
         stream = '2', _('StreamPush')
         course = '3', _('CoursePush')
 
-    created = models.DateTimeField("Создан", default=datetime.now())
+    created = models.DateTimeField("Создан", default=django.utils.timezone.now)
     content = models.CharField("Содержание", max_length=256)
     type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.admin)
 
@@ -301,9 +303,10 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField("Активный", default=True)
     name = models.CharField("Имя", max_length=32, default="")
     surname = models.CharField("Фамилия", max_length=64, default="")
+    grade = models.CharField("Класс/КолледжУник/Год", max_length=32, default="")
     email = models.EmailField("Почта", max_length=128)
     phone_number = models.CharField("Номер телефона", max_length=32, default="")
-    registered = models.DateTimeField("Зарегистрировался", default=datetime.now())
+    registered = models.DateTimeField("Зарегистрировался", default=django.utils.timezone.now)
     notifications = models.ManyToManyField(Push, related_name="Уведомления+", blank=True)
     avatar = models.ImageField("Аватар", blank=True, default=None)
     progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
