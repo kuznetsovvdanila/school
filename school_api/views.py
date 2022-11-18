@@ -152,7 +152,7 @@ def UpdateInfoAboutUser(request):
             user_instance.grade = grade
             user_instance.save()
             response = {"name": name, "surname": surname, "grade": grade}
-            returnResponse(response)
+            return Response(response)
         else:
             return Response(status_code=404)
     except KeyError:
