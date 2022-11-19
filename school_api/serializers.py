@@ -2,9 +2,9 @@ from rest_framework import serializers
 
 from school_app.models import *
 
-class PushSerializer(serializers.ModelSerializer):
+class NotificationsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Push
+        model = Notification
         fields = ['created', 'content']
 
 #   Support
@@ -75,7 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 #   POST
 class UserNotificationsSerializer(serializers.ModelSerializer):
-    notifications = PushSerializer(many=True, read_only=True)
+    notifications = NotificationsSerializer(many=True, read_only=True)
 
     class Meta:
         model = User

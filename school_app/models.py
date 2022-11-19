@@ -46,16 +46,16 @@ class Tag(models.Model):
         verbose_name = "Тэг"
         verbose_name_plural = "Тэги"
 
-class Push(models.Model):
+class Notification(models.Model):
     class types(models.TextChoices):
-        admin = '0', _('AdminPush')
-        homework = '1', _('HomeworkPush')
-        stream = '2', _('StreamPush')
-        course = '3', _('CoursePush')
+        admin = '0', _('AdminNotification')
+        homework = '1', _('HomeworkNotification')
+        stream = '2', _('StreamNotification')
+        course = '3', _('CourseNotification')
 
     created = models.DateTimeField("Создан", default=django.utils.timezone.now)
     content = models.CharField("Содержание", max_length=256)
-    type = models.CharField('Тип пуша', choices=types.choices, max_length=128, default=types.admin)
+    type = models.CharField('Тип уведомления', choices=types.choices, max_length=128, default=types.admin)
 
     # def save(self, parametr: int, user, text: str):
     #     if text is not None:
@@ -307,7 +307,7 @@ class User(AbstractBaseUser):
     email = models.EmailField("Почта", max_length=128)
     phone_number = models.CharField("Номер телефона", max_length=32, default="")
     registered = models.DateTimeField("Зарегистрировался", default=django.utils.timezone.now)
-    notifications = models.ManyToManyField(Push, related_name="Уведомления+", blank=True)
+    notifications = models.ManyToManyField(Notification, related_name="Уведомления+", blank=True)
     avatar = models.ImageField("Аватар", blank=True, default=None)
     progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
 
