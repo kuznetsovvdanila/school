@@ -113,7 +113,7 @@ def Authentication(request):
                 context[0].update(serializer.data)
                 context[0].update(serializerNotify.data)
                 return Response(context)
-            return Response(status_code=203)
+            else : return Response(status_code=203)
         else: return Response(status_code=404)
     except KeyError:
         return Response(status=500)
@@ -122,15 +122,20 @@ def Authentication(request):
 #   request ( body{ "login" : login, "password" : password,  "password_complete" : password_c} )
 @api_view(("POST",))
 def Registration(request):
+    context = [{}]
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         (login, password, password_complete) = (request.POST.get("login"),
             request.POST.get("password"), request.POST.get("password_complete"))
         if getApi is not None:
-            (check, error_message, id) = regValid(login, password, password_complete)
+            (check, error_message, user) = regValid(login, password, password_complete)
             if check:
-                return Response({"complete": check, "id": id})
+                serializer = UserSerializer(instance=user, many=False)
+                serializerNotify = UserNotificationsSerializer(instance=user, many=False)
+                context[0].update(serializer.data)
+                context[0].update(serializerNotify.data)
+                return Response(context)
             return Response({"error_message": error_message})
         else: return Response(status_code=404)
     except KeyError:
