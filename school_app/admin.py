@@ -23,7 +23,7 @@ class CourseAdmin(admin.ModelAdmin):
         return super().change(request, obj)
 
 admin.site.register(Tag)
-admin.site.register(Push)
+admin.site.register(Notification)
 admin.site.register(FileTask)
 admin.site.register(FileLesson)
 admin.site.register(Task)
