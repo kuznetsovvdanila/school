@@ -139,7 +139,7 @@ def Registration(request):
             return Response({"error_message": error_message})
         else: return Response(status_code=404)
     except KeyError:
-        return Response(status=500)
+        return Response(status=500, data="error occurred")
 
 #   Дополнительные данные о пользовате
 #   request ( body{ "user_id": user_id, "name" : name, "surname" : surname,  "grade" : grade} )
