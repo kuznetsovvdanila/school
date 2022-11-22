@@ -33,6 +33,7 @@ def regValid(login : str, password : str, password_complete : str) -> tuple:
     truth = False
     error_message = ""
     user_instance = None
+    print(login)
 
      # Проверяем на соответствие поля "email"у
     if list(login).count("@"):
