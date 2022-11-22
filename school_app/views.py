@@ -35,7 +35,7 @@ def regValid(login : str, password : str, password_complete : str) -> tuple:
     user_instance = None
 
      # Проверяем на соответствие поля "email"у
-    if login.count("@"):
+    if list(login).count("@"):
         isUser : bool = User.objects.filter(email=login).exists()
         if not(isUser):
             if password == password_complete:
