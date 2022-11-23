@@ -328,7 +328,7 @@ class User(AbstractBaseUser):
                               status_code=intf.statusCode(status_code))
 
     def __str__(self):
-        return self.email
+        return f"{self.email} {self.phone_number}"
 
     class Meta:
         verbose_name = "Пользователь"
