@@ -10,6 +10,9 @@ from school_app.models import *
 from school_app.views import *
 from .serializers import *
 
+import logging
+
+logging.basicConfig(level=logging.INFO, filename="py_log.log",filemode="w")
 
 # class CourseView(ViewSet):
 
@@ -128,6 +131,9 @@ def Registration(request):
         getApi = APIKey.objects.get_from_key(key)
         (login, password, password_complete) = (request.POST.get("login"),
             request.POST.get("password"), request.POST.get("password_complete"))
+
+        logging.debug(f"login={login},password={password},password_complite{password_complete}")
+
         if getApi is not None:
             (check, error_message, user) = regValid(login, password, password_complete)
             if check:
