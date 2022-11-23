@@ -169,7 +169,7 @@ def Registration(request):
         else:
             return Response(status_code=404)
     except KeyError:
-        return Response({"error_message": "error occurred"}, status=500)
+        return Response(exception={"error_message": "error occurred"}, status=500)
 
 
 #   Дополнительные данные о пользовате
