@@ -126,7 +126,7 @@ def Authentication(request):
         getApi = APIKey.objects.get_from_key(key)
         (login, password) = (request.data.get("login"), request.data.get("password"))
         if getApi is not None:
-            (check, user_instance) = authValid(login, password)
+            (check, user_instance, error_message) = authValid(login, password)
             if check:
                 serializer = UserSerializer(instance=user_instance, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user_instance, many=False)
@@ -134,7 +134,7 @@ def Authentication(request):
                 context.update(serializerNotify.data)
                 return Response(context)
             else:
-                return Response(status_code=203)
+                return Response({'error_message': error_message})
         else:
             return Response(status_code=404)
     except KeyError:

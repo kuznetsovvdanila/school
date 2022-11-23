@@ -16,17 +16,17 @@ def authValid(login : str, password : str) -> tuple:
     isUser = False
     if list(login).count("@") == 1:
         isUser = User.objects.filter(email=login).exists()
-        user_instance = User.objects.get(email=login)
         if isUser:
+            user_instance = User.objects.get(email=login)
             if (user_instance.check_password(password)):
                 truth = True
     else:
         isUser = User.objects.filter(phone_number=login).exists()
-        user_instance = User.objects.get(phone_number=login)
         if isUser:
+            user_instance = User.objects.get(phone_number=login)
             if (user_instance.check_password(password)):
                 truth = True
-    return truth, user_instance
+    return (truth, user_instance, "Wrong login or password")
 
 # возвращает tuple(check : bool, error_message : string, User.id : int)
 def regValid(login : str, password : str) -> tuple:
