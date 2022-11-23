@@ -14,5 +14,4 @@ urlpatterns = [
     path('user/auth', views.Authentication),
     path('user/reg', views.Registration),
     path("user/update", views.UpdateInfoAboutUser),
-    path("user/updatetest", views.UpdateInfoAboutUserTest)
 ] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
