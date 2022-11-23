@@ -165,11 +165,11 @@ def Registration(request):
                 logging.info(f"{context}")
 
                 return Response(context)
-            return Response({"error_message": error_message})
+            return Response(exception={"error_message": error_message})
         else:
             return Response(status_code=404)
     except KeyError:
-        return Response(exception={"error_message": "error occurred"}, status=500)
+        return Response(status=500)
 
 
 #   Дополнительные данные о пользовате
