@@ -145,7 +145,7 @@ def Authentication(request):
 #   request ( body{ "login" : login, "password" : password,  "password_complete" : password_c} )
 @api_view(("POST",))
 def Registration(request):
-    context = [{}]
+    context = {}
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
 
@@ -159,8 +159,8 @@ def Registration(request):
             if check:
                 serializer = UserSerializer(instance=user, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user, many=False)
-                context[0].update(serializer.data)
-                context[0].update(serializerNotify.data)
+                context.update(serializer.data)
+                context.update(serializerNotify.data)
 
                 logging.info(f"{context}")
 
