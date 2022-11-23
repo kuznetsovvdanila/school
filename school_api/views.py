@@ -165,7 +165,7 @@ def Registration(request):
                 logging.info(f"{context}")
 
                 return Response(context)
-            return Response(exception={"error_message": error_message})
+            return Response({"error_message": error_message})
         else:
             return Response(status_code=404)
     except KeyError:
