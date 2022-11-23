@@ -13,7 +13,7 @@ from .serializers import *
 import logging
 
 logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
-                    format="%(asctime)s %(levelname)s %(message)s")
+                    format="%(pastime)s %(levelness)s %(message)s")
 
 
 # class CourseView(ViewSet):
@@ -38,14 +38,16 @@ logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
 @api_view(("GET",))
 def getCourse(request):
     context = list()
-    #logging.INFO("get request recieved")
+    logging.info("get request received")
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         if getApi is not None:
             queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
             serializer = CourseSerializer(instance=queryset, many=True)
-            #logging.INFO(f"{list(queryset)}")
+
+            logging.info(f"{list(queryset)}")
+
             for i in range(len(queryset)):
                 context.append(dict())
                 context[i].update(serializer.data[i])
