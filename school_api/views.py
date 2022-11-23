@@ -44,7 +44,7 @@ def getCourse(request):
         getApi = APIKey.objects.get_from_key(key)
         if getApi is not None:
             queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
-            serializer = CourseSerializer(instance=queryset, many=False if len(queryset) == 1 else True)
+            serializer = CourseSerializer(instance=queryset, many=True)
             logging.INFO(f"{list(queryset)}")
             for i in range(len(queryset)):
                 context.append(dict())
