@@ -38,14 +38,14 @@ logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
 @api_view(("GET",))
 def getCourse(request):
     context = list()
-    logging.INFO("get request recieved")
+    #logging.INFO("get request recieved")
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         if getApi is not None:
-            queryset = Course.objects.exclude(is_active=Course.condition.is_archive) #.order_by('date_open')
+            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
             serializer = CourseSerializer(instance=queryset, many=True)
-            logging.INFO(f"{list(queryset)}")
+            #logging.INFO(f"{list(queryset)}")
             for i in range(len(queryset)):
                 context.append(dict())
                 context[i].update(serializer.data[i])
