@@ -130,12 +130,17 @@ def Registration(request):
     context = [{}]
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
+
+        alldata = request.POST
+        logging.debug(alldata)
+
         getApi = APIKey.objects.get_from_key(key)
         (login, password, password_complete) = (request.POST.get("login"),
             request.POST.get("password"), request.POST.get("password_complete"))
 
+
         logging.info(f"{request.POST}")
-        logging.info(f"login={login},password={password},password_complite{password_complete}")
+        logging.info(f"login={login},password={password},password_complite={password_complete}")
 
         if getApi is not None:
             (check, error_message, user) = regValid(login, password, password_complete)
