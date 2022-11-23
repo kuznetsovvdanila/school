@@ -120,7 +120,7 @@ def getTask(request):
 #   request ( body{ "login" : login, "password" : password} )
 @api_view(("POST",))
 def Authentication(request):
-    context = [{}]
+    context = {}
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
@@ -130,8 +130,8 @@ def Authentication(request):
             if check:
                 serializer = UserSerializer(instance=user_instance, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user_instance, many=False)
-                context[0].update(serializer.data)
-                context[0].update(serializerNotify.data)
+                context.update(serializer.data)
+                context.update(serializerNotify.data)
                 return Response(context)
             else:
                 return Response(status_code=203)
