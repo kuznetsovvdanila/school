@@ -38,7 +38,9 @@ logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
 @api_view(("GET",))
 def getCourse(request):
     context = list()
+
     logging.info("get request received")
+
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
@@ -150,8 +152,7 @@ def Registration(request):
         logging.info(request.data)
 
         getApi = APIKey.objects.get_from_key(key)
-        (login, password) = (request.data.get("login"),
-                             request.data.get("password"))
+        (login, password) = (request.data.get("login"), request.data.get("password"))
 
         if getApi is not None:
             (check, error_message, user) = regValid(login, password)
@@ -160,6 +161,9 @@ def Registration(request):
                 serializerNotify = UserNotificationsSerializer(instance=user, many=False)
                 context[0].update(serializer.data)
                 context[0].update(serializerNotify.data)
+
+                logging.info(f"{context}")
+
                 return Response(context)
             return Response({"error_message": error_message})
         else:
