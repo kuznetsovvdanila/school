@@ -39,7 +39,8 @@ def regValid(login : str, password : str) -> tuple:
     if re.match(r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', login):
         isUser: bool = User.objects.filter(phone_number=login).exists()
         if not (isUser):
-            user_instance = User(phone_number=login, password=password)
+            user_instance = User(phone_number=login)
+            user_instance.set_password(password)
             user_instance.save()
             truth = True
         else:
@@ -49,7 +50,8 @@ def regValid(login : str, password : str) -> tuple:
     elif validate(login):
         isUser : bool = User.objects.filter(email=login).exists()
         if not(isUser):
-            user_instance = User(email=login, password=password)
+            user_instance = User(email=login)
+            user_instance.set_password(password)
             user_instance.save()
             truth = True
         else:
