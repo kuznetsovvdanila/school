@@ -14,7 +14,7 @@ def authValid(login : str, password : str) -> tuple:
     truth = False
     user_instance = None
     isUser = False
-    if str(login).count("@") == 1:
+    if list(login).count("@") == 1:
         isUser = User.objects.filter(email=login).exists()
         user_instance = User.objects.get(email=login)
         if isUser:

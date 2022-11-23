@@ -72,7 +72,7 @@ def getLesson(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (course_id, lesson_index) = (int(request.POST.get("course_id")), int(request.POST.get("lesson_index")))
+        (course_id, lesson_index) = (int(request.data.get("course_id")), int(request.data.get("lesson_index")))
         if getApi is not None:
             course_instance = Course.objects.get(id=course_id)
             lesson = course_instance.lessons.get(index=lesson_index)
@@ -89,8 +89,8 @@ def getTask(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (course_id, lesson_index, task_index) = (int(request.POST.get("course_id")), 
-        int(request.POST.get("lesson_index")), int(request.POST.get("task_index")))
+        (course_id, lesson_index, task_index) = (int(request.data.get("course_id")),
+        int(request.data.get("lesson_index")), int(request.data.get("task_index")))
         if getApi is not None:
             course_instance = Course.objects.get(id=course_id)
             lesson_instance = course_instance.lessons.get(index=lesson_index)
@@ -109,7 +109,7 @@ def Authentication(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (login, password) = (request.POST.get("login"), request.POST.get("password"))
+        (login, password) = (request.data.get("login"), request.data.get("password"))
         if getApi is not None:
             (check, user_instance) = authValid(login, password)
             if check:
@@ -157,8 +157,8 @@ def UpdateInfoAboutUser(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (user_id, name, surname, grade) = (request.POST.get("user_id"), request.POST.get("name"),
-            request.POST.get("surname"), request.POST.get("grade"))
+        (user_id, name, surname, grade) = (request.data.get("user_id"), request.data.get("name"),
+            request.data.get("surname"), request.data.get("grade"))
         if getApi is not None:
             user_instance = User.objects.get(id=user_id)
             user_instance.name = name
