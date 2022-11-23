@@ -134,7 +134,7 @@ def Registration(request):
         logging.info(request.data)
 
         getApi = APIKey.objects.get_from_key(key)
-        (login, password, password_complete) = (request.data.get("login"),
+        (login, password) = (request.data.get("login"),
             request.data.get("password"))
 
         if getApi is not None:
