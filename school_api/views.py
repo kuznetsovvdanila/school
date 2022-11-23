@@ -135,10 +135,10 @@ def Registration(request):
 
         getApi = APIKey.objects.get_from_key(key)
         (login, password, password_complete) = (request.data.get("login"),
-            request.data.get("password"), request.data.get("password_complete"))
+            request.data.get("password"))
 
         if getApi is not None:
-            (check, error_message, user) = regValid(login, password, password_complete)
+            (check, error_message, user) = regValid(login, password)
             if check:
                 serializer = UserSerializer(instance=user, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user, many=False)
