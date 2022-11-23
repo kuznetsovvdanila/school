@@ -12,7 +12,8 @@ from .serializers import *
 
 import logging
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log",filemode="w")
+logging.basicConfig(level=logging.INFO, filename="py_log.log",filemode="w",
+                    format="%(asctime)s %(levelname)s %(message)s")
 
 # class CourseView(ViewSet):
 
@@ -36,6 +37,7 @@ logging.basicConfig(level=logging.INFO, filename="py_log.log",filemode="w")
 @api_view(("GET",))
 def getCourse(request):
     context = list()
+    logging.INFO("get request recieved")
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
