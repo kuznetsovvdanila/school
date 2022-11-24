@@ -196,3 +196,20 @@ def UpdateInfoAboutUser(request):
     except KeyError:
         return Response(status=500)
 
+
+#   request ( body{ "course_id" : CourseID } )
+@api_view(("POST",))
+def getChats(request):
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        course_id = int(request.data.get("course_id"))
+        if getApi is not None:
+            course_instance = Course.objects.get(id=course_id)
+            chats = course_instance.chats.all()
+            serializer = CourseChatsPoolSerializer(instance=chats, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)

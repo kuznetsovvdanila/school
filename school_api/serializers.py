@@ -93,6 +93,18 @@ class TeacherSerializer(serializers.ModelSerializer):
         model = Teacher
         fields = ['id', 'name', 'surname', 'description', 'avatar', ]
 
+#   Support
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = ['id', 'name', 'url']
+
+#   Support
+class ChatImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = ['image']
+
 #   GET
 #   1st Stage request to get CourseInfo = getCourse
 class CourseSerializer(serializers.ModelSerializer):
@@ -111,4 +123,11 @@ class CourseLessonPoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ['id', 'lessons']
+
+class CourseChatsPoolSerializer(serializers.ModelSerializer):
+    chats = ChatSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ['chats']
         
