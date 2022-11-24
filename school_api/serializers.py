@@ -71,7 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'surname', 'grade', 'email', 'phone_number', 'progresses', 'registered']
+        fields = ['id', 'name', 'surname', 'grade', 'email', 'phone_number', 'progresses', 'registered_datetime']
 
 #   POST
 class UserNotificationsSerializer(serializers.ModelSerializer):

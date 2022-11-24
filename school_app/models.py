@@ -317,6 +317,9 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    @property
+    def registered_datetime(self) -> str : return self.registered.strftime("%H:%M:%S, %m/%d/%Y")
+
     # вызывается из вивсов, записывает данные по заданию, вызывает taskProgress, где прогресс обновляется
     def updateTaskProgress(self, path: str, status_code: bool):
         pathlist = path.split('/')
