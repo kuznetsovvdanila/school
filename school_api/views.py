@@ -120,21 +120,21 @@ def getTask(request):
 #   request ( body{ "login" : login, "password" : password} )
 @api_view(("POST",))
 def Authentication(request):
-    context = [{}]
+    context = {}
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         (login, password) = (request.data.get("login"), request.data.get("password"))
         if getApi is not None:
-            (check, user_instance) = authValid(login, password)
+            (check, user_instance, error_message) = authValid(login, password)
             if check:
                 serializer = UserSerializer(instance=user_instance, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user_instance, many=False)
-                context[0].update(serializer.data)
-                context[0].update(serializerNotify.data)
+                context.update(serializer.data)
+                context.update(serializerNotify.data)
                 return Response(context)
             else:
-                return Response(status_code=203)
+                return Response({'error_message': error_message})
         else:
             return Response(status_code=404)
     except KeyError:
@@ -169,11 +169,13 @@ def Registration(request):
         else:
             return Response(status_code=404)
     except KeyError:
-        return Response({"error_message": "error occurred"}, status=500)
+        return Response(status=500)
 
 
 #   Дополнительные данные о пользовате
 #   request ( body{ "user_id": user_id, "name" : name, "surname" : surname,  "grade" : grade} )
+
+# заполнение полей имени + остального после регистрации
 @api_view(("POST",))
 def UpdateInfoAboutUser(request):
     try:
@@ -194,22 +196,3 @@ def UpdateInfoAboutUser(request):
     except KeyError:
         return Response(status=500)
 
-
-@api_view(("GET",))
-def UpdateInfoAboutUserTest(request):
-    context = [{}]
-    try:
-        key = request.META["HTTP_AUTHORIZATION"].split()[0]
-        getApi = APIKey.objects.get_from_key(key)
-        if getApi is not None:
-            queryset = User.objects.all()[0]
-            serializer = UserSerializer(instance=queryset, many=False)
-            serializerNotify = UserNotificationsSerializer(instance=queryset, many=False)
-            context[0].update(serializer.data)
-            context[0].update(serializerNotify.data)
-            return Response(context)
-
-        else:
-            return Response(status_code=404)
-    except KeyError:
-        return Response(status=500)
