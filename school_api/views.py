@@ -82,7 +82,8 @@ def getLesson(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (course_id, lesson_index) = (int(request.data.get("course_id")), int(request.data.get("lesson_index")))
+        (course_id, lesson_index) = (int(request.data.get("course_id")),
+                                     int(request.data.get("lesson_index")))
         if getApi is not None:
             course_instance = Course.objects.get(id=course_id)
             lesson = course_instance.lessons.get(index=lesson_index)
@@ -93,11 +94,29 @@ def getLesson(request):
     except KeyError:
         return Response(status=500)
 
+@api_view(("POST",))
+def getLessonFiles(request):
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        (course_id, lesson_index) = (int(request.data.get("course_id")),
+                                     int(request.data.get("lesson_index")))
+        if getApi is not None:
+            course_instance = Course.objects.get(id=course_id)
+            lesson = course_instance.lessons.get(index=lesson_index)
+            serializer = LessonFilesSerializer(instance=lesson, many=False)
+            return Response(serializer.data)
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+
+
 
 #   Подгрузка при заходе на таск
 #   request ( body{ "course_id" : CourseID, "lesson_index" : LessonIndex,  "task_index" : TaskIndex} )
 @api_view(("POST",))
-def getTask(request):
+def getTaskFiles(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
@@ -108,13 +127,12 @@ def getTask(request):
             course_instance = Course.objects.get(id=course_id)
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
-            serializer = TaskFileSerializer(instance=task, many=False)
+            serializer = TaskFilesSerializer(instance=task, many=False)
             return Response(serializer.data)
         else:
             return Response(status_code=404)
     except KeyError:
         return Response(status=500)
-
 
 #   Авторизация
 #   request ( body{ "login" : login, "password" : password} )
@@ -124,7 +142,8 @@ def Authentication(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (login, password) = (request.data.get("login"), request.data.get("password"))
+        (login, password) = (request.data.get("login"),
+                             request.data.get("password"))
         if getApi is not None:
             (check, user_instance, error_message) = authValid(login, password)
             if check:
@@ -152,7 +171,8 @@ def Registration(request):
         logging.info(request.data)
 
         getApi = APIKey.objects.get_from_key(key)
-        (login, password) = (request.data.get("login"), request.data.get("password"))
+        (login, password) = (request.data.get("login"),
+                             request.data.get("password"))
 
         if getApi is not None:
             (check, error_message, user) = regValid(login, password)
@@ -181,8 +201,10 @@ def UpdateInfoAboutUser(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (user_id, name, surname, grade) = (request.data.get("user_id"), request.data.get("name"),
-                                           request.data.get("surname"), request.data.get("grade"))
+        (user_id, name, surname, grade) = (request.data.get("user_id"),
+                                           request.data.get("name"),
+                                           request.data.get("surname"),
+                                           request.data.get("grade"))
         if getApi is not None:
             user_instance = User.objects.get(id=user_id)
             user_instance.name = name

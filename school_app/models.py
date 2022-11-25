@@ -157,7 +157,8 @@ class Lesson(models.Model):
     access = models.CharField("Уровень доступа", default=accesses.closed, choices=accesses.choices, max_length=1)
 
     @property
-    def getTasks(self) -> int : return len(self.homework.tasks.all())
+    def getTasks(self) -> int :
+        return len(self.homework.tasks.all())
 
     def setId(self, id, index):
         self.id_course = id

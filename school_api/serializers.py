@@ -21,7 +21,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 #   POST
 #   4th Stage request to get CourseInfo = getTask
-class TaskFileSerializer(serializers.ModelSerializer):
+class TaskFilesSerializer(serializers.ModelSerializer):
     files = FileTaskSerializer(many=True, read_only=True)
 
     class Meta:
@@ -53,11 +53,17 @@ class LessonSerializer(serializers.ModelSerializer):
 #   3rd Stage request to get CourseInfo = getLesson
 class LessonPoolSerializer(serializers.ModelSerializer):
     homework = HomeworkSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = ['link', 'description', 'homework']
+
+class LessonFilesSerializer(serializers.ModelSerializer):
     files = FileLessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Lesson
-        fields = ['link', 'description', 'homework', 'files']
+        fields = ['files']
 
 #   Support
 class ProgressSerializer(serializers.ModelSerializer):
