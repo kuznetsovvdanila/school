@@ -191,7 +191,7 @@ class Progress(models.Model):
     whole_course = models.IntegerField("Весь курс", default=0)
     lessons = models.CharField("Уроки %", max_length=512, default=" ")  # may be change to 1024
     status_tasks = models.CharField("Задачи курса (статус)", max_length=2048, default=" ")
-    answer_tasks = models.CharField("Ответы на задания", max_length=4096)
+    answer_tasks = models.CharField("Ответы на задания", max_length=4096, default=" ")
 
     # 67 50 90 for lessons : split(" ")
     # 0 1 2.0 1 0 for status_tasks : split(".") : split(" ")
