@@ -154,6 +154,7 @@ def checkAnswer(request):
             if user.progresses.filter(id_course=course_id).exists() == False:
                 progress = Progress.create(course_instance).save()
                 user.progresses.add(progress)
+                user.save()
 
             progress = user.progresses.get(id_course=course_id)
             progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
