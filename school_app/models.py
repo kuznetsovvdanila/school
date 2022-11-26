@@ -220,7 +220,7 @@ class Progress(models.Model):
         if (lesson_index is not None) and (task_index is not None):
 
             if status_code == 1:
-                answers = intf.parseToList(answer)
+                answers = intf.parseToList(self.answer_tasks)
                 answers[lesson_index][task_index] = answer
                 self.answer_tasks = intf.joinToString(answers)
 
