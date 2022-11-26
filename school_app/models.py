@@ -222,6 +222,7 @@ class Progress(models.Model):
             if status_code == 1:
                 answers = intf.parseToList(answer_tasks)
                 answers[lesson_index][task_index] = answer
+                self.answer_tasks = intf.joinToString(answers)
 
 
             array_status_tasks = intf.parseToList(self.status_tasks)
