@@ -23,10 +23,11 @@ class intf():
 
     @staticmethod
     def joinToString(array: list):
-        if array[0] is list:
+        if type(array[0]) is list: #for status_task
             return '.'.join([' '.join(i) for i in array])
-        elif array[0] is not list:
-            return " ".join(["0" for i in range(len(array))])
+        elif type(array[0]) is not list: # for lessons [89 78 0 15] %
+            return " ".join(["0" for i in range(len(array))]) # вызывается при создании прогресса для лессонов
+
 
     @staticmethod
     def statusCode(status_code: bool) -> int:
@@ -34,7 +35,6 @@ class intf():
             return 1  # правильный ответ
         else:
             return 2  # неправильный ответ
-
 
 class Tag(models.Model):
     name = models.CharField("Название", max_length=64, unique=True)
@@ -110,6 +110,8 @@ class Task(models.Model):
         status = False
         if answer == self.correct_answer:
             status = True
+            user.updateTaskProgress()
+
         if path is not None:
             user.updateTaskProgress(path, status)
             return status
@@ -188,22 +190,22 @@ class Progress(models.Model):
     is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
     lessons = models.CharField("Уроки %", max_length=512, default=" ")  # may be change to 1024
-    status_tasks = models.CharField("Задачи курса (статус)", max_length=8192, default=" ")
+    status_tasks = models.CharField("Задачи курса (статус)", max_length=2048, default=" ")
+    answer_tasks = models.CharField("Ответы на задания", max_length=4096)
 
     # 67 50 90 for lessons : split(" ")
-    # 0 1 2.3 4 5 for tasks : split(".") : split(" ")
     # 0 1 2.0 1 0 for status_tasks : split(".") : split(" ")
     # to status_tasks : 0 is default, 1 is completed, 2 is wrong
 
     # tasks, status_tasks
 
-    # Вызывается из , возвращает процент выполненных task по уроку
+    # Вызывается из taskProgress,... ; возвращает процент выполненных task по уроку
     def lessonPercentage(self, index: int) -> int:
         status_tasks = intf.parseToList(self.status_tasks)
         percent = round(100 * status_tasks[index].count('1') / len(status_tasks[index]))
         return percent
 
-    # Вызывается из , возвращает массив с процентами по lesson`ам
+    # Вызывается из taskProgress,openLesson ; возвращает массив с процентами по lesson`ам
     def lessonManage(self, index: int, percent: int) -> str:
         Array = self.lesson.split(" ")
         if index == len(Array):
@@ -214,8 +216,14 @@ class Progress(models.Model):
 
     # Вызываетя из updateTaskProgress, обновляет статусы тасков и прогрессы по курсу и урокам
     # Для обновления по результатам выполнения одного Taska
-    def taskProgress(self, lesson_index, task_index, status_code):
+    def taskProgress(self, lesson_index, task_index, status_code, answer_tasks, answer):
         if (lesson_index is not None) and (task_index is not None):
+
+            if status_code == 1:
+                answers = intf.parseToList(answer_tasks)
+                answers[lesson_index][task_index] = answer
+
+
             array_status_tasks = intf.parseToList(self.status_tasks)
 
             array_status_tasks[lesson_index][task_index] = status_code
@@ -237,10 +245,13 @@ class Progress(models.Model):
     def openLesson(self, lesson):
         if lesson is not None:
             array_status_tasks = intf.parseToList(self.status_tasks)
+            array_answer_tasks = intf.parseToList(self.answer_tasks)
 
             array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
+            array_answer_tasks.append(["null" for i in range(len(list(lesson.homework.tasks.all())))])
 
             self.status_tasks = intf.joinToString(array_status_tasks)
+            self.answer_tasks = intf.joinToString(array_answer_tasks)
 
             self.lessons = self.lessonManage(lesson.index, 0)
 
@@ -259,14 +270,18 @@ class Progress(models.Model):
     def bought(self, course):
         lessons = list(course.lessons.filter(access=Lesson.accesses.partavailable))
         status_tasks = list()
+        answer_tasks = list()
 
         for i in range(len(lessons)):
             status_tasks.append([])
+            answer_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
+                answer_tasks[i].append("null")
 
         self.status_tasks = intf.joinToString(status_tasks)
+        self.answer_tasks = intf.joinToString(answer_tasks)
         self.lessons = intf.joinToString(lessons)
         self.is_bought = True
         self.save()
@@ -281,16 +296,20 @@ class Progress(models.Model):
             lessons = course.lessons.filter(access=Lesson.accesses.available)  # без оплаты записываются открытые уроки
 
         status_tasks = list()
+        answer_tasks = list()
 
         for i in range(len(lessons)):
             status_tasks.append([])
+            answer_tasks.append([])
             all_tasks = list(lessons[i].homework.tasks.all())
             for k in range(len(all_tasks)):
                 status_tasks[i].append("0")
+                answer_tasks[i].append("null")
 
+        _answer_tasks = intf.joinToString(answer_tasks)
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param) #куплен ли курс зависит от параметра
+        progress = cls(lessons=_lessons, status_tasks=_status_tasks, answer_tasks=_answer_tasks, course=course.id, is_bought=param) #куплен ли курс зависит от параметра
         return progress
 
     def __str__(self):
@@ -322,7 +341,7 @@ class User(AbstractBaseUser):
     @property
     def registered_datetime(self) -> str : return self.registered.strftime("%H:%M:%S, %m/%d/%Y")
 
-    # вызывается из вивсов, записывает данные по заданию, вызывает taskProgress, где прогресс обновляется
+    # вызывается из checkAnswer, записывает данные по заданию, вызывает taskProgress, где прогресс обновляется
     def updateTaskProgress(self, path: str, status_code: bool):
         pathlist = path.split('/')
         id_course = pathlist[0].split("_")[1]

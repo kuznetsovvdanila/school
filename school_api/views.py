@@ -155,7 +155,7 @@ def checkAnswer(request):
                 user.progresses.add(Progress.create(course_instance))
 
             progress = user.progresses.get(id_course=course_id)
-            progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer))
+            progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), progress.answer_tasks, answer)
 
             serializer = UserProgressSerializer(instance=user,many=True)
             return Response(serializer.data)
