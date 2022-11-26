@@ -134,6 +134,42 @@ def getTaskFiles(request):
     except KeyError:
         return Response(status=500)
 
+@api_view(("POST",))
+def checkAnswer(request):
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        (user_id, course_id, lesson_index, task_index, answer) = (int(request.data.get("user_id")),
+                                                                  int(request.data.get("course_id")),
+                                                                  int(request.data.get("lesson_index")),
+                                                                  int(request.data.get("task_index")),
+                                                                  str(request.data.get("answer")))
+
+        if getApi is not None:
+            user = User.objects.get(id = user_id)
+            course_instance = Course.objects.get(id=course_id)
+            lesson_instance = course_instance.lessons.get(index=lesson_index)
+            task = lesson_instance.homework.tasks.get(index=task_index)
+
+            if user.progresses.get(id_course=course_id) == None:
+                user.progresses.add(Progress.create(course_instance))
+
+            progress = user.progresses.get(id_course=course_id)
+            progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer))
+
+            serializer = UserProgressSerializer(instance=user,many=True)
+            return Response(serializer.data)
+
+        else:
+            return Response(status_code=404)
+
+    except KeyError:
+        return Response(status=500)
+
+
+
+
+
 #   Авторизация
 #   request ( body{ "login" : login, "password" : password} )
 @api_view(("POST",))

@@ -106,13 +106,14 @@ class Task(models.Model):
     index = models.IntegerField("Индекс внутри homework", default=0)
     files = models.ManyToManyField(FileTask, related_name="Файлы+", blank=True)
 
-    def checkAnswer(self, user, answer: str, path: str) -> bool:
+    def checkAnswer(self, user, answer: str, path: str = None) -> bool:
         status = False
         if answer == self.correct_answer:
             status = True
-
-        user.updateTaskProgress(path, status)
-        return status
+        if path is not None:
+            user.updateTaskProgress(path, status)
+            return status
+        return intf.statusCode(status)
 
     def __str__(self):
         return self.name
@@ -272,7 +273,7 @@ class Progress(models.Model):
 
     # вызывается из bought при покупке курса без Progress
     @classmethod
-    def create(cls, course, param=False):  # параметр передается из первого bought
+    def create(cls, course, param=False):  # параметр (куплен ли курс) передается из bought
         lessons = 0
         if param:
             lessons = course.lessons.exclude(access=Lesson.accesses.closed)
@@ -289,7 +290,7 @@ class Progress(models.Model):
 
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param)
+        progress = cls(lessons=_lessons, status_tasks=_status_tasks, course=course.id, is_bought=param) #куплен ли курс зависит от параметра
         return progress
 
     def __str__(self):

@@ -71,6 +71,13 @@ class ProgressSerializer(serializers.ModelSerializer):
         model = Progress
         fields = ['id_course', 'is_bought', 'whole_course', 'lessons', 'status_tasks']
 
+#POST
+class UserProgressSerializer(serializers.ModelSerializer):
+    progresses = ProgressSerializer(many=True, read_only=True)
+    class Meta:
+        model = User
+        fields = ["progresses"]
+
 #   GET/POST
 class UserSerializer(serializers.ModelSerializer):
     progresses = ProgressSerializer(many=True, read_only=True)
