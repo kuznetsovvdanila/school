@@ -151,7 +151,7 @@ def checkAnswer(request):
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
 
-            if user.progresses.get(id_course=course_id) == None:
+            if user.progresses.filter(id_course=course_id).exists() == False:
                 progress = Progress.create(course_instance).save()
                 user.progresses.add(progress)
 
