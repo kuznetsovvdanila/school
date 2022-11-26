@@ -145,20 +145,28 @@ def checkAnswer(request):
                                                                   int(request.data.get("task_index")),
                                                                   str(request.data.get("answer")))
 
+        logging.debug("get values",user_id,course_id,lesson_index,task_index,answer)
+
         if getApi is not None:
             user = User.objects.get(id = user_id)
             course_instance = Course.objects.get(id=course_id)
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
 
+            logging.info("get instances", user,course_instance,lesson_instance,task)
+
             if user.progresses.filter(id_course=course_id).exists() == False:
+
+                logging.info('progress not exists')
+
                 progress = Progress.create(course_instance).save()
+
                 user.progresses.add(progress)
 
             progress = user.progresses.get(id_course=course_id)
             progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
 
-            serializer = UserProgressSerializer(instance=user,many=True)
+            serializer = UserProgressSerializer(instance=user,many=False)
             return Response(serializer.data)
 
         else:
