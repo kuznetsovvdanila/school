@@ -216,11 +216,11 @@ class Progress(models.Model):
 
     # Вызываетя из updateTaskProgress, обновляет статусы тасков и прогрессы по курсу и урокам
     # Для обновления по результатам выполнения одного Taska
-    def taskProgress(self, lesson_index, task_index, status_code, answer_tasks, answer):
+    def taskProgress(self, lesson_index, task_index, status_code, answer):
         if (lesson_index is not None) and (task_index is not None):
 
             if status_code == 1:
-                answers = intf.parseToList(answer_tasks)
+                answers = intf.parseToList(answer)
                 answers[lesson_index][task_index] = answer
                 self.answer_tasks = intf.joinToString(answers)
 
