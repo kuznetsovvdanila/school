@@ -145,7 +145,7 @@ def checkAnswer(request):
                                                                   int(request.data.get("task_index")),
                                                                   str(request.data.get("answer")))
 
-        logging.debug("get values",user_id,course_id,lesson_index,task_index,answer)
+        #logging.debug("get values",user_id,course_id,lesson_index,task_index,answer)
 
         if getApi is not None:
             user = User.objects.get(id = user_id)
