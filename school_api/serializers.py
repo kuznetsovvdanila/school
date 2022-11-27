@@ -69,7 +69,7 @@ class LessonFilesSerializer(serializers.ModelSerializer):
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
-        fields = ['id_course', 'is_bought', 'whole_course', 'lessons', 'status_tasks']
+        fields = ['id_course', 'is_bought', 'whole_course', 'lessons', 'status_tasks', 'answer_tasks']
 
 #POST
 class UserProgressSerializer(serializers.ModelSerializer):
