@@ -197,8 +197,12 @@ def Authentication(request):
             if check:
                 serializer = UserSerializer(instance=user_instance, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user_instance, many=False)
+                serializerProgresses = UserProgressSerializer(instance=user_instance, many=False)
+
                 context.update(serializer.data)
                 context.update(serializerNotify.data)
+                context.update(serializerProgresses.data)
+
                 return Response(context)
             else:
                 return Response({'error_message': error_message})
@@ -227,8 +231,11 @@ def Registration(request):
             if check:
                 serializer = UserSerializer(instance=user, many=False)
                 serializerNotify = UserNotificationsSerializer(instance=user, many=False)
+                serializerProgresses = UserProgressSerializer(instance=user, many=False)
+
                 context.update(serializer.data)
                 context.update(serializerNotify.data)
+                context.update(serializerProgresses.data)
 
                 logging.info(f"{context}")
 

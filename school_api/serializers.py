@@ -80,11 +80,10 @@ class UserProgressSerializer(serializers.ModelSerializer):
 
 #   GET/POST
 class UserSerializer(serializers.ModelSerializer):
-    progresses = ProgressSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'surname', 'grade', 'email', 'phone_number', 'progresses', 'registered_datetime']
+        fields = ['id', 'name', 'surname', 'grade', 'email', 'phone_number', 'registered_datetime']
 
 #   POST
 class UserNotificationsSerializer(serializers.ModelSerializer):
