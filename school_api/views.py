@@ -145,7 +145,7 @@ def checkAnswer(request):
                                                                   int(request.data.get("task_index")),
                                                                   str(request.data.get("answer")))
 
-        #logging.debug("get values",user_id,course_id,lesson_index,task_index,answer)
+        #logging.info("get values",user_id,course_id,lesson_index,task_index,answer)
 
         if getApi is not None:
             user = User.objects.get(id = user_id)
@@ -157,9 +157,12 @@ def checkAnswer(request):
 
             if user.progresses.filter(id_course=course_id).exists() == False:
 
-                logging.info('progress not exists')
+                #logging.info('progress not exists')
 
                 progress = Progress.create(course_instance)
+
+                logging.info("progress created")
+
                 progress.save()
 
                 user.progresses.add(progress)
