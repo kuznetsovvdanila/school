@@ -153,7 +153,7 @@ def checkAnswer(request):
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
 
-            logging.info("get instances", user,course_instance,lesson_instance,task)
+            #logging.info("get instances", user,course_instance,lesson_instance,task)
 
             if user.progresses.filter(id_course=course_id).exists() == False:
 
