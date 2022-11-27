@@ -34,36 +34,79 @@ logging.basicConfig(level=logging.INFO, filename="pylog.log", format="%(pastime)
 #         except KeyError:
 #             return Response(status=500)
 
-@api_view(("GET",))
-def getCourse(request):
+@api_view(("GET", "POST"))
+def getCourses(request):
     context = list()
-
-    logging.info("get request received")
 
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
         if getApi is not None:
-            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
-            serializer = CourseSerializer(instance=queryset, many=True)
 
-            logging.info(f"{list(queryset)}")
+            if request.method == "GET":
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
+                serializer = CourseSerializer(instance=queryset, many=True)
+                for i in range(len(queryset)):
+                    context.append(dict())
+                    context[i].update(serializer.data[i])
+                return Response(context)
+
+            if request.method == "POST":
+                user_id = int(request.data.get("user_id"))
+                user = User.objects.get(id=user_id)
+                user_courses = user.progresses.all()
+                user_courses_id = (user_course.id_course for user_course in user_courses)
+
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive, id=user_courses_id).order_by('date_open')
+                serializer = CourseSerializer(instance=queryset, many=True)
+
+                for i in range(len(queryset)):
+                    context.append(dict())
+                    context[i].update(serializer.data[i])
+                return Response(context)
+
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+
+@api_view(("POST",))
+def getCourses(request):
+    context = list()
+
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        if getApi is not None:
+
+            user_id = int(request.data.get("user_id"))
+            user = User.objects.get(id=user_id)
+            user_courses = user.progresses.all().order_by("id")
+            user_courses_id = (user_course.id_course for user_course in user_courses)
+
+            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(id=user_courses_id)
+            serializer = CourseSerializer(instance=queryset, many=True)
 
             for i in range(len(queryset)):
                 context.append(dict())
                 context[i].update(serializer.data[i])
             return Response(context)
+
         else:
             return Response(status_code=404)
     except KeyError:
         return Response(status=500)
 
 
-@api_view(("GET",))
+@api_view(("GET", "POST"))
 def getAllLessons(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
+
+        user_id = int(request.data.get("user_id"))
+        user = User.objects.get(id=user_id)
+
         if getApi is not None:
             queryset = Course.objects.exclude(is_active=Course.condition.is_archive).order_by('date_open')
             serializer = CourseLessonPoolSerializer(instance=queryset, many=True)

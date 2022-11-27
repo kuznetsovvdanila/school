@@ -7,7 +7,7 @@ from school import settings
 from . import views
 
 urlpatterns = [
-    path('course/', views.getCourse),
+    path('course/', views.getCourses),
     path('course/lessons', views.getAllLessons),
     path("course/chats", views.getChats),
     path('point/course/lesson', views.getLesson),
