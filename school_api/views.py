@@ -13,7 +13,7 @@ from .serializers import *
 import logging
 
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log", format="%(pastime)s %(levelness)s %(message)s")
+logging.basicConfig(level=logging.INFO, filename="pylog.log", format="%(pastime)s %(levelness)s %(message)s")
 
 
 # class CourseView(ViewSet):
@@ -161,12 +161,14 @@ def checkAnswer(request):
 
                 progress = Progress.create(course_instance)
 
-                logging.info("progress created")
+                #logging.info("progress created")
 
                 progress.save()
 
                 user.progresses.add(progress)
-                #user.save()
+                user.save()
+
+                logging.info("progress added to user")
 
             progress = user.progresses.get(id_course=course_id)
             progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
