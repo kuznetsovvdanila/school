@@ -12,8 +12,7 @@ from .serializers import *
 
 import logging
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
-                    format="%(pastime)s %(levelness)s %(message)s")
+logging.basicConfig(level=logging.INFO, filename="py_log.log", format="%(pastime)s %(levelness)s %(message)s")
 
 
 # class CourseView(ViewSet):
