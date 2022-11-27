@@ -275,7 +275,7 @@ def getProgresses(request):
         user_id = (int(request.data.get("user_id")))
 
         if getApi is not None:
-            user = User.objects.filter(id=user_id)
+            user = User.objects.get(id=user_id)
 
             if user.progresses.exists():
                 serializer = UserProgressSerializer(instance=user, many=False)
