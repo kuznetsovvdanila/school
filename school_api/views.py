@@ -159,7 +159,8 @@ def checkAnswer(request):
 
                 logging.info('progress not exists')
 
-                progress = Progress.create(course_instance).save()
+                progress = Progress.create(course_instance)
+                progress.save()
 
                 user.progresses.add(progress)
                 user.save()
