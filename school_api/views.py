@@ -71,7 +71,7 @@ def getCourses(request):
         return Response(status=500)
 
 @api_view(("POST",))
-def getCourses(request):
+def getMyCourses(request):
     context = list()
 
     try:
@@ -85,7 +85,7 @@ def getCourses(request):
             user_courses_id = (user_course.id_course for user_course in user_courses)
 
             queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(id=user_courses_id)
-            serializer = CourseSerializer(instance=queryset, many=True)
+            serializer = MyCourseSerializer(instance=queryset, many=True)
 
             for i in range(len(queryset)):
                 context.append(dict())
