@@ -12,7 +12,6 @@ from .serializers import *
 
 import logging
 
-
 logging.basicConfig(level=logging.INFO, filename="pylog.log", format="%(pastime)s %(levelness)s %(message)s")
 
 
@@ -94,6 +93,7 @@ def getLesson(request):
     except KeyError:
         return Response(status=500)
 
+
 @api_view(("POST",))
 def getLessonFiles(request):
     try:
@@ -110,7 +110,6 @@ def getLessonFiles(request):
             return Response(status_code=404)
     except KeyError:
         return Response(status=500)
-
 
 
 #   Подгрузка при заходе на таск
@@ -134,6 +133,7 @@ def getTaskFiles(request):
     except KeyError:
         return Response(status=500)
 
+
 @api_view(("POST",))
 def checkAnswer(request):
     try:
@@ -145,35 +145,34 @@ def checkAnswer(request):
                                                                   int(request.data.get("task_index")),
                                                                   str(request.data.get("answer")))
 
-        #logging.info("get values",user_id,course_id,lesson_index,task_index,answer)
+        # logging.info("get values",user_id,course_id,lesson_index,task_index,answer)
 
         if getApi is not None:
-            user = User.objects.get(id = user_id)
+            user = User.objects.get(id=user_id)
             course_instance = Course.objects.get(id=course_id)
             lesson_instance = course_instance.lessons.get(index=lesson_index)
             task = lesson_instance.homework.tasks.get(index=task_index)
 
-            #logging.info("get instances", user,course_instance,lesson_instance,task)
+            # logging.info("get instances", user,course_instance,lesson_instance,task)
 
-            if user.progresses.filter(id_course=course_id).exists() == False:
-
-                #logging.info('progress not exists')
+            if not user.progresses.filter(id_course=course_id).exists():
+                # logging.info('progress not exists')
 
                 progress = Progress.create(course_instance)
 
-                #logging.info("progress created")
+                # logging.info("progress created")
 
                 progress.save()
 
                 user.progresses.add(progress)
                 user.save()
 
-                #logging.info("progress added to user")
+                # logging.info("progress added to user")
 
             progress = user.progresses.get(id_course=course_id)
             progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
 
-            serializer = UserProgressSerializer(instance=user,many=False)
+            serializer = UserProgressSerializer(instance=user, many=False)
             return Response(serializer.data)
 
         else:
@@ -181,9 +180,6 @@ def checkAnswer(request):
 
     except KeyError:
         return Response(status=500)
-
-
-
 
 
 #   Авторизация
@@ -270,6 +266,7 @@ def UpdateInfoAboutUser(request):
     except KeyError:
         return Response(status=500)
 
+
 @api_view(("POST",))
 def getProgresses(request):
     try:
@@ -278,18 +275,19 @@ def getProgresses(request):
         user_id = (int(request.data.get("user_id")))
 
         if getApi is not None:
-            user_instance = User.objects.filter(id=user_id)
-            serializer = UserProgressSerializer(instance=user_instance, many=False)
-            return Response(serializer.data)
+            user = User.objects.filter(id=user_id)
+            if not user.progresses.exists():
+                serializer = UserProgressSerializer(instance=user, many=False)
+                return Response(serializer.data)
+            else:
+                error_message = "null"
+                return Response({"error_message": error_message})
 
         else:
             return Response(status_code=404)
 
     except KeyError:
         return Response(status=500)
-
-
-
 
 
 #   request ( body{ "course_id" : CourseID } )
