@@ -111,7 +111,6 @@ class Task(models.Model):
         status = False
         if answer == self.correct_answer:
             status = True
-            user.updateTaskProgress()
 
         if path is not None:
             user.updateTaskProgress(path, status)
