@@ -143,14 +143,14 @@ class CourseChatsPoolSerializer(serializers.ModelSerializer):
         model = Course
         fields = ['chats']
 
-class MyLessonSerializer(serializers.ModelSerializer):
+class MyLessonSerializer(serializers.ModelSerializer):  #full lesson
     homework = HomeworkSerializer(many=False, read_only=True)
 
     class Meta:
         model = Lesson
         fields = ['id', 'name', 'access', 'getTasks', 'index', 'link', 'description', 'homework']
 
-class MyCourseSerializer(serializers.ModelSerializer):
+class MyCourseSerializer(serializers.ModelSerializer): #full course
     teachers = TeacherSerializer(many=True, read_only=True)
     lessons = MyLessonSerializer(many=True, read_only=True)
 
