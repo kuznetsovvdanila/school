@@ -224,12 +224,12 @@ class Progress(models.Model):
                 answers[lesson_index][task_index] = answer
                 self.answer_tasks = intf.joinToString(answers)
 
-
             array_status_tasks = intf.parseToList(self.status_tasks)
 
             array_status_tasks[lesson_index][task_index] = status_code
 
             self.status_tasks = intf.joinToString(array_status_tasks)
+            self.save()
 
             percent = self.lessonPercentage(lesson_index)
             self.lessons = self.lessonManage(lesson_index, percent)
