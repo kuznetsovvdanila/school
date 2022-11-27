@@ -16,7 +16,8 @@ urlpatterns = [
     path('user/reg', views.Registration),
     path("user/update", views.UpdateInfoAboutUser),
     path("point/course/lesson/files", views.getLessonFiles),
-    path("task/answer", views.checkAnswer)
+    path("task/answer", views.checkAnswer),
+    path("user/progresses", views.getProgresses)
 
 
 ] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
