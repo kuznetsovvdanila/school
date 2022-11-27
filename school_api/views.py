@@ -136,51 +136,47 @@ def getTaskFiles(request):
 
 @api_view(("POST",))
 def checkAnswer(request):
-    try:
-        key = request.META["HTTP_AUTHORIZATION"].split()[0]
-        getApi = APIKey.objects.get_from_key(key)
-        (user_id, course_id, lesson_index, task_index, answer) = (int(request.data.get("user_id")),
-                                                                  int(request.data.get("course_id")),
-                                                                  int(request.data.get("lesson_index")),
-                                                                  int(request.data.get("task_index")),
-                                                                  str(request.data.get("answer")))
+    key = request.META["HTTP_AUTHORIZATION"].split()[0]
+    getApi = APIKey.objects.get_from_key(key)
+    (user_id, course_id, lesson_index, task_index, answer) = (int(request.data.get("user_id")),
+                                                                int(request.data.get("course_id")),
+                                                                int(request.data.get("lesson_index")),
+                                                                int(request.data.get("task_index")),
+                                                                str(request.data.get("answer")))
 
-        #logging.info("get values",user_id,course_id,lesson_index,task_index,answer)
+    #logging.info("get values",user_id,course_id,lesson_index,task_index,answer)
 
-        if getApi is not None:
-            user = User.objects.get(id = user_id)
-            course_instance = Course.objects.get(id=course_id)
-            lesson_instance = course_instance.lessons.get(index=lesson_index)
-            task = lesson_instance.homework.tasks.get(index=task_index)
+    if getApi is not None:
+        user = User.objects.get(id = user_id)
+        course_instance = Course.objects.get(id=course_id)
+        lesson_instance = course_instance.lessons.get(index=lesson_index)
+        task = lesson_instance.homework.tasks.get(index=task_index)
 
-            #logging.info("get instances", user,course_instance,lesson_instance,task)
+        #logging.info("get instances", user,course_instance,lesson_instance,task)
 
-            if user.progresses.filter(id_course=course_id).exists() == False:
+        if user.progresses.filter(id_course=course_id).exists() == False:
 
-                #logging.info('progress not exists')
+            #logging.info('progress not exists')
 
-                progress = Progress.create(course_instance)
+            progress = Progress.create(course_instance)
 
-                #logging.info("progress created")
+            #logging.info("progress created")
 
-                progress.save()
+            progress.save()
 
-                user.progresses.add(progress)
-                user.save()
+            user.progresses.add(progress)
+            user.save()
 
-                #logging.info("progress added to user")
+            #logging.info("progress added to user")
 
-            progress = user.progresses.get(id_course=course_id)
-            progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
+        progress = user.progresses.get(id_course=course_id)
+        progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
 
-            serializer = UserProgressSerializer(instance=user,many=False)
-            return Response(serializer.data)
+        serializer = UserProgressSerializer(instance=user,many=False)
+        return Response(serializer.data)
 
-        else:
-            return Response(status_code=404)
-
-    except KeyError:
-        return Response(status=500)
+    else:
+        return Response(status_code=404)
 
 
 

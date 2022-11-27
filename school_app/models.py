@@ -201,13 +201,13 @@ class Progress(models.Model):
 
     # Вызывается из taskProgress,... ; возвращает процент выполненных task по уроку
     def lessonPercentage(self, index: int) -> int:
-        status_tasks = intf.parseToList(self.status_tasks)
+        status_tasks = intf.parseToList(str(self.status_tasks))
         percent = round(100 * status_tasks[index].count('1') / len(status_tasks[index]))
         return percent
 
     # Вызывается из taskProgress,openLesson ; возвращает массив с процентами по lesson`ам
-    def lessonManage(self, index: int, percent: int) -> str:
-        Array = self.lesson.split(" ")
+    def lessonManage(self, index: int, percent: str) -> str:
+        Array = self.lessons.split(" ")
         if index == len(Array):
             Array.append(percent)
         else:
@@ -216,36 +216,32 @@ class Progress(models.Model):
 
     # Вызываетя из updateTaskProgress, обновляет статусы тасков и прогрессы по курсу и урокам
     # Для обновления по результатам выполнения одного Taska
-    def taskProgress(self, lesson_index, task_index, status_code, answer):
+    def taskProgress(self, lesson_index : int, task_index : int, status_code : int, answer : str):
         if (lesson_index is not None) and (task_index is not None):
-
             if status_code == 1:
                 answers = intf.parseToList(self.answer_tasks)
                 answers[lesson_index][task_index] = answer
                 self.answer_tasks = intf.joinToString(answers)
 
-            array_status_tasks = intf.parseToList(self.status_tasks)
+            array_status_tasks = intf.parseToList(str(self.status_tasks))
 
-            array_status_tasks[lesson_index][task_index] = status_code
+            array_status_tasks[lesson_index][task_index] = str(status_code)
 
             self.status_tasks = intf.joinToString(array_status_tasks)
             self.save()
 
             percent = self.lessonPercentage(lesson_index)
-            self.lessons = self.lessonManage(lesson_index, percent)
+            self.lessons = self.lessonManage(lesson_index, str(percent))
 
             self.whole_course = round(self.status_tasks.count('1') /
                                       (len(self.status_tasks) - self.status_tasks.count(
                                           ' ') - self.status_tasks.count('.')))
             self.save()
 
-    def save(self, args, **kwargs):
-        super(Progress, self).save(args, **kwargs)
-
     # Вызывается из !!!!!!!!!!!!!!!!!
     def openLesson(self, lesson):
         if lesson is not None:
-            array_status_tasks = intf.parseToList(self.status_tasks)
+            array_status_tasks = intf.parseToList(str(self.status_tasks))
             array_answer_tasks = intf.parseToList(self.answer_tasks)
 
             array_status_tasks.append(["0" for i in range(len(list(lesson.homework.tasks.all())))])
@@ -254,7 +250,7 @@ class Progress(models.Model):
             self.status_tasks = intf.joinToString(array_status_tasks)
             self.answer_tasks = intf.joinToString(array_answer_tasks)
 
-            self.lessons = self.lessonManage(lesson.index, 0)
+            self.lessons = self.lessonManage(lesson.index, "0")
 
             self.whole_course = round(self.status_task.count('1') /
                                       (len(self.status_tasks) - self.status_tasks.count(' ') - self.status_tasks.count(
@@ -310,7 +306,7 @@ class Progress(models.Model):
         _answer_tasks = intf.joinToString(answer_tasks)
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, answer_tasks=_answer_tasks, course=course.id, is_bought=param) #куплен ли курс зависит от параметра
+        progress = cls(lessons=_lessons, status_tasks=_status_tasks, answer_tasks=_answer_tasks, id_course=course.id, is_bought=param) #куплен ли курс зависит от параметра
         return progress
 
     def __str__(self):
