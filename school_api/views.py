@@ -82,14 +82,18 @@ def getMyCourses(request):
             user_id = int(request.data.get("user_id"))
             user = User.objects.get(id=user_id)
             user_courses = user.progresses.all().order_by("id")
-            user_courses_id = (user_course.id_course for user_course in user_courses)
+            user_courses_id = [user_course.id_course for user_course in user_courses]
 
-            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(id=user_courses_id)
-            serializer = MyCourseSerializer(instance=queryset, many=True)
+            queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
+            my_courses = []
 
-            for i in range(len(queryset)):
+            for user_course_id in user_courses_id:
+                my_courses.append(queryset.get(id=user_course_id))
+
+            for i in range(len(my_courses)):
+                serializer = MyCourseSerializer(instance=my_courses[i], many=False)
                 context.append(dict())
-                context[i].update(serializer.data[i])
+                context[i].update(serializer.data)
             return Response(context)
 
         else:
