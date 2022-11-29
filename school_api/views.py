@@ -353,7 +353,7 @@ def getProgresses(request):
 
 
 #   request ( body{ "course_id" : CourseID } )
-@api_view(("POST",))
+@api_view(("GET", "POST"))
 def getChats(request):
     context = [dict()]
     try:
@@ -361,21 +361,27 @@ def getChats(request):
         getApi = APIKey.objects.get_from_key(key)
         user_id = int(request.data.get("user_id"))
         if getApi is not None:
-            user = User.objects.get(id=user_id)
-            user_progresses = user.progresses.all()
-            user_courses_id = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
-
-            queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
-            accessed_query = queryset.filter(pk__in=user_courses_id)
-            if accessed_query.exists():
-                accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_query, many=True)
-                serializer = CourseChatsPoolSerializer(instance=queryset.exclude(pk__in=user_courses_id), many=True)
-                context.update(accessed_serializer.data)
-                context.update(serializer.data)
-                return Response(context)
-            else:
+            if request.method == "GET":
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
                 serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
                 return Response(serializer.data)
+
+            elif request.method == "POST":
+                user = User.objects.get(id=user_id)
+                user_progresses = user.progresses.all()
+                user_courses_id = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
+
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
+                accessed_query = queryset.filter(pk__in=user_courses_id)
+                if accessed_query.exists():
+                    accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_query, many=True)
+                    serializer = CourseChatsPoolSerializer(instance=queryset.exclude(pk__in=user_courses_id), many=True)
+                    context.update(accessed_serializer.data)
+                    context.update(serializer.data)
+                    return Response(context)
+                else:
+                    serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                    return Response(serializer.data)
         else:
             return Response(status_code=404)
     except KeyError:
