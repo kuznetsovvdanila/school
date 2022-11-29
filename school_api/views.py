@@ -393,7 +393,7 @@ def getMyChats(request):
             user = User.objects.get(id=user_id)
             user_progresses = user.progresses.all()
             user_courses_id = [user_progress.id_course for user_progress in user_progresses]
-            user_courses_id_accessed = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
+            user_courses_id_accessed = [user_progress.id_course for user_progress in user_progresses if user_progress.is_bought]
 
             queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(pk__in=user_courses_id)
             accessed_queryset = queryset.filter(pk__in=user_courses_id_accessed)
@@ -413,7 +413,7 @@ def getMyChats(request):
                 return Response(context)
             else:
                 serializer = CourseChatsPoolSerializer(instance=queryset)
-                for i in range(len(exclude_accessed)):
+                for i in range(len(queryset)):
                     context.append(dict())
                     context[i].update(serializer.data[i])
                 return Response(context)
