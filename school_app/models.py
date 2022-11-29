@@ -319,11 +319,11 @@ class Progress(models.Model):
 
 class User(AbstractBaseUser):
     is_active = models.BooleanField("Активный", default=True)
-    name = models.CharField("Имя", max_length=32, default="")
-    surname = models.CharField("Фамилия", max_length=64, default="")
-    grade = models.CharField("Класс/КолледжУник/Год", max_length=32, default="")
-    email = models.EmailField("Почта", max_length=128)
-    phone_number = models.CharField("Номер телефона", max_length=32, default="")
+    name = models.CharField("Имя", max_length=32, default="", blank=True)
+    surname = models.CharField("Фамилия", max_length=64, default="", blank=True)
+    grade = models.CharField("Класс/КолледжУник/Год", max_length=32, default="", blank=True)
+    email = models.EmailField("Почта", max_length=128, blank=True)
+    phone_number = models.CharField("Номер телефона", max_length=32, default="", blank=True)
     registered = models.DateTimeField("Зарегистрировался", default=django.utils.timezone.now)
     notifications = models.ManyToManyField(Notification, related_name="Уведомления+", blank=True)
     avatar = models.ImageField("Аватар", blank=True, default=None)
