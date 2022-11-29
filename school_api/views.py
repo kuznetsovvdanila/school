@@ -215,18 +215,13 @@ def checkAnswer(request):
             # logging.info("get instances", user,course_instance,lesson_instance,task)
 
             if not user.progresses.filter(id_course=course_id).exists():
-                # logging.info('progress not exists')
+                course_instance.addTrial(user=user)
 
                 progress = Progress.create(course_instance)
-
-                # logging.info("progress created")
-
                 progress.save()
 
                 user.progresses.add(progress)
                 user.save()
-
-                # logging.info("progress added to user")
 
             progress = user.progresses.get(id_course=course_id)
             progress.taskProgress(lesson_index, task_index, task.checkAnswer(user, answer), answer)
