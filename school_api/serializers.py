@@ -127,12 +127,12 @@ class ChatImageSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     teachers = TeacherSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    chats = ChatSerializer(many=True, read_only=True)
+    chat = ChatSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount',
-        'duration', 'date_open', 'teachers', 'tags', 'chats']
+        'duration', 'date_open', 'teachers', 'tags', 'chat']
 
 #   GET
 #   2nd Stage request to get CourseInfo = getAllLesson
@@ -161,11 +161,11 @@ class MyCourseSerializer(serializers.ModelSerializer): #full course
     teachers = TeacherSerializer(many=True, read_only=True)
     lessons = MyLessonSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    chats = ChatSerializer(many=True, read_only=True)
+    chat = ChatSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount', 
-                    'duration', 'date_open', 'teachers', 'lessons', 'tags', 'chats']
+                    'duration', 'date_open', 'teachers', 'lessons', 'tags', 'chat']
 
 
