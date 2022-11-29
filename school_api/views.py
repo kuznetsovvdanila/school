@@ -351,11 +351,10 @@ def getProgresses(request):
     except KeyError:
         return Response(status=500)
 
-
-#   request ( body{ "course_id" : CourseID } )
+# wait for user_id if POST
 @api_view(("GET", "POST"))
 def getChats(request):
-    context = [dict()]
+    context = list()
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
@@ -371,17 +370,52 @@ def getChats(request):
                 user_progresses = user.progresses.all()
                 user_courses_id = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
 
-                queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
-                accessed_query = queryset.filter(pk__in=user_courses_id)
-                if accessed_query.exists():
-                    accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_query, many=True)
-                    serializer = CourseChatsPoolSerializer(instance=queryset.exclude(pk__in=user_courses_id), many=True)
-                    context.update(accessed_serializer.data)
-                    context.update(serializer.data)
-                    return Response(context)
-                else:
-                    serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
-                    return Response(serializer.data)
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive).exclude(pk__in=user_courses_id)
+                serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                for i in range(len(queryset)):
+                    context.append(dict())
+                    context[i].update(serializer.data[i])
+                return Response(context)
+        else:
+            return Response(status_code=404)
+    except KeyError:
+        return Response(status=500)
+
+@api_view(("POST",))
+def getMyChats(request):
+    context = list()
+    try:
+        key = request.META["HTTP_AUTHORIZATION"].split()[0]
+        getApi = APIKey.objects.get_from_key(key)
+        user_id = int(request.data.get("user_id"))
+        if getApi is not None:
+            user = User.objects.get(id=user_id)
+            user_progresses = user.progresses.all()
+            user_courses_id = [user_progress.id_course for user_progress in user_progresses]
+            user_courses_id_accessed = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
+
+            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(pk__in=user_courses_id)
+            accessed_queryset = queryset.filter(pk__in=user_courses_id_accessed)
+            if accessed_queryset.exists():
+                accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_queryset, many=True)
+                counter = 0
+                for i in range(len(accessed_queryset)):
+                    context.append(dict())
+                    context[i].update(accessed_serializer.data[i])
+                    counter = i+1
+                if len(accessed_queryset) != len(queryset):
+                    exclude_accessed = queryset.exclude(pk__in=user_courses_id_accessed)
+                    serializer = CourseChatsPoolSerializer(instance=exclude_accessed)
+                    for i in range(len(exclude_accessed)):
+                        context.append(dict())
+                        context[counter+i].update(serializer.data[i])
+                return Response(context)
+            else:
+                serializer = CourseChatsPoolSerializer(instance=queryset)
+                for i in range(len(exclude_accessed)):
+                    context.append(dict())
+                    context[i].update(serializer.data[i])
+                return Response(context)
         else:
             return Response(status_code=404)
     except KeyError:

@@ -19,6 +19,6 @@ urlpatterns = [
     path("task/answer", views.checkAnswer),
     path("user/progresses", views.getProgresses),
     path("course/self", views.getMyCourses),
-
+    path("course/chats/self", views.getMyChats),
 
 ] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
