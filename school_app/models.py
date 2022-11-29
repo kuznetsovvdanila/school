@@ -432,6 +432,10 @@ class Course(models.Model):
         self.users.add(user)
         self.save()
 
+    def addTrial(self, user):
+        self.trials.add(user)
+        self.save()
+
     def __str__(self):
         return self.name
 

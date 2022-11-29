@@ -2,6 +2,11 @@ from rest_framework import serializers
 
 from school_app.models import *
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
 class NotificationsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
@@ -121,11 +126,12 @@ class ChatImageSerializer(serializers.ModelSerializer):
 #   1st Stage request to get CourseInfo = getCourse
 class CourseSerializer(serializers.ModelSerializer):
     teachers = TeacherSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount',
-        'duration', 'date_open', 'teachers']
+        'duration', 'date_open', 'teachers', 'tags']
 
 #   GET
 #   2nd Stage request to get CourseInfo = getAllLesson
@@ -153,9 +159,10 @@ class MyLessonSerializer(serializers.ModelSerializer):  #full lesson
 class MyCourseSerializer(serializers.ModelSerializer): #full course
     teachers = TeacherSerializer(many=True, read_only=True)
     lessons = MyLessonSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount', 'duration', 'date_open', 'teachers', 'lessons']
+        fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount', 'duration', 'date_open', 'teachers', 'lessons', 'tags']
 
 
