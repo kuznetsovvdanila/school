@@ -355,15 +355,27 @@ def getProgresses(request):
 #   request ( body{ "course_id" : CourseID } )
 @api_view(("POST",))
 def getChats(request):
+    context = [dict()]
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        course_id = int(request.data.get("course_id"))
+        user_id = int(request.data.get("user_id"))
         if getApi is not None:
-            course_instance = Course.objects.get(id=course_id)
-            chats = course_instance.chats.all()
-            serializer = CourseChatsPoolSerializer(instance=chats, many=True)
-            return Response(serializer.data)
+            user = User.objects.get(id=user_id)
+            user_progresses = user.progresses.all()
+            user_courses_id = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
+
+            queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
+            accessed_query = queryset.filter(pk__in=user_courses_id)
+            if accessed_query.exists():
+                accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_query, many=True)
+                serializer = CourseChatsPoolSerializer(instance=queryset.exclude(pk__in=user_courses_id), many=True)
+                context.update(accessed_serializer.data)
+                context.update(serializer.data)
+                return Response(context)
+            else:
+                serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                return Response(serializer.data)
         else:
             return Response(status_code=404)
     except KeyError:

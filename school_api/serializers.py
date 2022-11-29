@@ -114,6 +114,11 @@ class TeacherSerializer(serializers.ModelSerializer):
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
+        fields = ['name']
+
+class AccessedChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
         fields = ['name', 'url']
 
 #   Support
@@ -127,12 +132,11 @@ class ChatImageSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     teachers = TeacherSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    chat = ChatSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount',
-        'duration', 'date_open', 'teachers', 'tags', 'chat']
+        'duration', 'date_open', 'teachers', 'tags']
 
 #   GET
 #   2nd Stage request to get CourseInfo = getAllLesson
@@ -144,11 +148,18 @@ class CourseLessonPoolSerializer(serializers.ModelSerializer):
         fields = ['id', 'lessons']
 
 class CourseChatsPoolSerializer(serializers.ModelSerializer):
-    chats = ChatImageSerializer(many=True, read_only=True)
+    chat = ChatSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ['chats']
+        fields = ['id', 'chat']
+
+class AccessedCourseChatsPoolSerializer(serializers.ModelSerializer):
+    chat = AccessedChatSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ['id', 'chat']
 
 class MyLessonSerializer(serializers.ModelSerializer):  #full lesson
     homework = HomeworkSerializer(many=False, read_only=True)
@@ -161,11 +172,10 @@ class MyCourseSerializer(serializers.ModelSerializer): #full course
     teachers = TeacherSerializer(many=True, read_only=True)
     lessons = MyLessonSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    chat = ChatSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
         fields = ['id', 'name', 'product_preview', 'description', 'value', 'lessonsCount', 
-                    'duration', 'date_open', 'teachers', 'lessons', 'tags', 'chat']
+                    'duration', 'date_open', 'teachers', 'lessons', 'tags']
 
 
