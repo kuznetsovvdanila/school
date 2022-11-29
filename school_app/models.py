@@ -181,7 +181,7 @@ def postRequestFields(sender, instance, created, **kwargs):
         instance.slug = instance.name + "_" + str(instance.id)
         homework = Homework.create(name=instance.name)
         homework.save()
-        instance.homework = homework
+        instance.homework.add(homework, bulk=False)
         instance.save()
 
 
