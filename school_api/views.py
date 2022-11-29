@@ -358,7 +358,6 @@ def getChats(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        user_id = int(request.data.get("user_id"))
         if getApi is not None:
             if request.method == "GET":
                 queryset = Course.objects.exclude(is_active=Course.condition.is_archive)
@@ -366,16 +365,18 @@ def getChats(request):
                 return Response(serializer.data)
 
             elif request.method == "POST":
+                user_id = int(request.data.get("user_id"))
                 user = User.objects.get(id=user_id)
                 user_progresses = user.progresses.all()
-                user_courses_id = [user_progress.id_course for user_progress in user_progresses if user_progress.bought]
+                user_courses_id = [user_progress.id_course for user_progress in user_progresses]
 
                 queryset = Course.objects.exclude(is_active=Course.condition.is_archive).exclude(pk__in=user_courses_id)
-                serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
-                for i in range(len(queryset)):
-                    context.append(dict())
-                    context[i].update(serializer.data[i])
-                return Response(context)
+                if len(queryset) != 0:
+                    serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                    for i in range(len(queryset)):
+                        context.append(dict())
+                        context[i].update(serializer.data[i])
+                    return Response(context)
         else:
             return Response(status_code=404)
     except KeyError:
