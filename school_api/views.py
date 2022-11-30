@@ -395,29 +395,34 @@ def getMyChats(request):
             user_courses_id = [user_progress.id_course for user_progress in user_progresses]
             user_courses_id_accessed = [user_progress.id_course for user_progress in user_progresses if user_progress.is_bought]
 
-            queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(pk__in=user_courses_id)
-            accessed_queryset = queryset.filter(pk__in=user_courses_id_accessed)
-            if accessed_queryset.exists():
-                accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_queryset, many=True)
-                counter = 0
-                for i in range(len(accessed_queryset)):
-                    context.append(dict())
-                    context[i].update(accessed_serializer.data[i])
-                    counter = i+1
-                if len(accessed_queryset) != len(queryset):
-                    exclude_accessed = queryset.exclude(pk__in=user_courses_id_accessed)
-                    serializer = CourseChatsPoolSerializer(instance=exclude_accessed)
-                    for i in range(len(exclude_accessed)):
+            if len(user_courses_id) != 0:
+                queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(pk__in=user_courses_id)
+                accessed_queryset = queryset.filter(pk__in=user_courses_id_accessed)
+                if accessed_queryset.exists():
+                    print(accessed_queryset)
+                    accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_queryset, many=True)
+                    counter = 0
+                    for i in range(len(accessed_queryset)):
                         context.append(dict())
-                        context[counter+i].update(serializer.data[i])
-                return Response(context)
-            else:
-                serializer = CourseChatsPoolSerializer(instance=queryset)
-                for i in range(len(queryset)):
-                    context.append(dict())
-                    context[i].update(serializer.data[i])
-                return Response(context)
+                        context[i].update(accessed_serializer.data[i])
+                        counter = i+1
+                    if len(user_courses_id) != len(user_courses_id_accessed):
+                        exclude_accessed = queryset.exclude(pk__in=user_courses_id_accessed)
+                        serializer = CourseChatsPoolSerializer(instance=exclude_accessed)
+                        for i in range(len(exclude_accessed)):
+                            context.append(dict())
+                            context[counter+i].update(serializer.data[i])
+                    return Response(context)
+                else:
+                    print(queryset)
+                    serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                    for i in range(len(queryset)):
+                        context.append(dict())
+                        context[i].update(serializer.data[i])
+                    return Response(context)
+            else: 
+                return Response(status=300)
         else:
-            return Response(status_code=404)
+            return Response(status=404)
     except KeyError:
         return Response(status=500)
