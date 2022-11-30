@@ -310,17 +310,20 @@ def UpdateInfoAboutUser(request):
     try:
         key = request.META["HTTP_AUTHORIZATION"].split()[0]
         getApi = APIKey.objects.get_from_key(key)
-        (user_id, name, surname, grade) = (request.data.get("user_id"),
-                                           request.data.get("name"),
-                                           request.data.get("surname"),
-                                           request.data.get("grade"))
+        (user_id, name, surname, email, phone_number) = (
+                                        request.data.get("user_id"),
+                                        request.data.get("name"),
+                                        request.data.get("surname"),
+                                        request.data.get("email"),
+                                        request.data.get("phone_number"))
         if getApi is not None:
             user_instance = User.objects.get(id=user_id)
             user_instance.name = name
             user_instance.surname = surname
-            user_instance.grade = grade
+            user_instance.email = email
+            user_instance.phone_number = phone_number
             user_instance.save()
-            response = {"name": name, "surname": surname, "grade": grade}
+            response = {"user_id": user_id, "name": name, "surname": surname, "email": email, "phone_number": phone_number}
             return Response(response)
         else:
             return Response(status_code=404)
