@@ -108,7 +108,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['id', 'name', 'surname', 'description', 'avatar', ]
+        fields = ['id', 'name', 'surname', 'description', 'avatar', 'telegram_link']
 
 #   Support
 class ChatSerializer(serializers.ModelSerializer):

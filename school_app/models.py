@@ -357,7 +357,9 @@ class User(AbstractBaseUser):
 
 
 class Teacher(User):
-    description = models.CharField(max_length=8192)
+    description = models.CharField("Описание", max_length=8192)
+    telegram_link = models.CharField("Ссылка на телеграм", max_length=256, blank=True)
+    #courses id for binding courses of this teacher. include archive as well as active and waiting_for_begin
 
     def __str__(self):
         return self.name
