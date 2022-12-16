@@ -402,26 +402,19 @@ def getMyChats(request):
                 queryset = Course.objects.exclude(is_active=Course.condition.is_archive).filter(pk__in=user_courses_id)
                 accessed_queryset = queryset.filter(pk__in=user_courses_id_accessed)
                 if accessed_queryset.exists():
-                    print(accessed_queryset)
                     accessed_serializer = AccessedCourseChatsPoolSerializer(instance=accessed_queryset, many=True)
-                    counter = 0
                     for i in range(len(accessed_queryset)):
-                        context.append(dict())
-                        context[i].update(accessed_serializer.data[i])
-                        counter = i+1
+                        context.append(accessed_serializer.data[i])
                     if len(user_courses_id) != len(user_courses_id_accessed):
                         exclude_accessed = queryset.exclude(pk__in=user_courses_id_accessed)
-                        serializer = CourseChatsPoolSerializer(instance=exclude_accessed)
+                        serializer = CourseChatsPoolSerializer(instance=exclude_accessed, many=True)
                         for i in range(len(exclude_accessed)):
-                            context.append(dict())
-                            context[counter+i].update(serializer.data[i])
+                            context.append(serializer.data[i])
                     return Response(context)
                 else:
-                    print(queryset)
-                    serializer = CourseChatsPoolSerializer(instance=queryset, many=True)
+                    serializer = CourseChatsPoolSerializer(instance=queryset, many=False)
                     for i in range(len(queryset)):
-                        context.append(dict())
-                        context[i].update(serializer.data[i])
+                        context.append(serializer.data[i])
                     return Response(context)
             else: 
                 return Response(status=300)
