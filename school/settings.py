@@ -25,9 +25,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 SECRET_KEY = 'django-insecure-g_jsj_&-ih=)og06=^&0oxii0u^p-ue2yk94$dkd!4u%&hi&zb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "95.163.237.222", "kofefast.ru", "www.kofefast.ru", "samotokhin.ru", "www.samotokhin.ru"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "95.163.237.222", "kofefast.ru", "www.kofefast.ru", "samotokhin.ru", "www.samotokhin.ru"]
 
 
 # Application definition
