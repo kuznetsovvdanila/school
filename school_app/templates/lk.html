@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+    <head>
+        <title>Личный кабинет</title>
+        <link rel="stylesheet" href="{% static 'css/lk.min.css' %}">
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    </head>
+    <body>
+        
+        {% block content %}
+            {% include "general/top_menu_lk.html" %}
+        {% endblock %}
+
+        <input type="text" />
+    </body>
+    <script type="text/javascript" src="{% static 'js/index.js' %}" ></script>
+</html>

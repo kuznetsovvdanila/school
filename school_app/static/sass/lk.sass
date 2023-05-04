@@ -1,0 +1,57 @@
+@import base/setup
+@import base/fonts
+@import base/colors
+
+    
+body
+  overflow-x: hidden
+  margin: 0
+  background-color: #171717
+
+
+// top_menu_lk.sass
+.top_menu
+  height: 100px
+  width: 100%
+  background-color: $primary_lk
+  #logo
+    height: 100%
+    width: 360px
+    color: $text
+    font-size: 32px
+    font-family: $font_bold
+  div:last-of-type
+    height: 100%
+    max-width: 80%
+    .menu_item
+      width: 200px  
+      height: 100%
+      color: $text
+      font-size: 20px
+      font-family: $font_regular
+    .split
+      height: 60%
+      background-color: white
+      width: 2px  
+    #notifications
+      height: 100%
+      width: 80px
+      img
+        width: 40px
+        height: 40px
+        border-radius: 100%
+        cursor: pointer
+        margin: auto
+    #profile
+      height: 100%   
+      width: 100px 
+      cursor: pointer
+      img:first-of-type
+        width: 64px
+        height: 64px
+        border-radius: 100%
+        margin: auto
+      img:last-of-type
+        height: 20px 
+        width: 20px
+        margin: auto

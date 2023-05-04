@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
+import json
 
 # Create your models here.
 
@@ -175,11 +176,9 @@ class Lesson(models.Model):
     def getTasks(self) -> int :
         return len(self.homework.tasks.all())
     
+    @property
     def slug_pk(self) -> str :
-        if self.index != 0:
-            return "%s_%s" % (self.slug, self.index)
-        else:
-            raise ValueError("Invalid index value")
+        return "%s_%s" % (self.slug, self.index)
         
     def check_to_open_access(self):
         def check_access() -> bool:
@@ -203,6 +202,7 @@ class Lesson(models.Model):
 
 
 class Progress(models.Model):
+    id_course = models.CharField("ID course", max_length=31)
     is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
     lessons = models.CharField("Уроки %", max_length=511, default=" ")  # may be change to 1024
@@ -323,7 +323,7 @@ class Progress(models.Model):
         _answer_tasks = intf.joinToString(answer_tasks)
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, 
+        progress = cls(id_course=course.id, lessons=_lessons, status_tasks=_status_tasks, 
                        answer_tasks=_answer_tasks, is_bought=param) #куплен ли курс зависит от параметра
         return progress
 
@@ -347,6 +347,8 @@ class User(AbstractBaseUser):
 
     completed = models.BooleanField("Закончена авторизация", default=False, 
             help_text="проверка на то закончил ли пользователь регистрацию")
+    
+    unchecked_lessons = models.JSONField("Непросмотренные уроки", null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -363,6 +365,11 @@ class User(AbstractBaseUser):
         progress = self.progresses.get(id_course=id_course)
         progress.taskProgress(lesson_index=lesson_index, task_index=task_index,
                               status_code=intf.statusCode(status_code))
+        
+    def update_unchecked_lessons(self, course_id):
+        pass
+        # Need to update JSONField and inspect the Progress to call openLesson or smthg
+
 
     def __str__(self):
         return f"{self.email} {self.phone_number}"
@@ -406,8 +413,21 @@ class Chat(models.Model):
 class Calendar(models.Model):
     date_storage = models.JSONField("Хранение дат", null=True, blank=True)
 
-    def set_datetime(self, lesson_id, lesson_name):
-        pass
+    def set_datetime(self, lesson_id, lesson_name, lesson_date_to_start, lesson_slug):
+        dates : dict = json.loads(self.date_storage)
+        new_datetime = {
+            lesson_id : {
+                "name" : lesson_name,
+                "date_to_start" : lesson_date_to_start,
+                "slug" : lesson_slug
+            }
+        }
+        if lesson_id not in dates.keys():
+            dates.update(new_datetime)
+        else:
+            dates[lesson_id] = new_datetime[lesson_id]
+        self.date_storage = json.dumps(dates)
+        self.save()
 
     def __str__(self):
         return "%s_%s" % (self.course.name, self.course.date_open)
@@ -463,12 +483,14 @@ class Course(models.Model):
         
 
         return False
-    
-    def send_new_time(self, lesson_id, lesson_name):
-        self.calendar.set_datetime(lesson_id, lesson_name)
 
     def update_accesses(self, lesson_access: Lesson.accesses):
-        pass
+        if lesson_access == Lesson.accesses.available:
+            for user in self.trials.all() | self.users.all():
+                user.update_unchecked_lessons(self.id)
+        elif lesson_access == Lesson.accesses.partavailable:
+            for user in self.users.all():
+                user.update_unchecked_lessons(self.id)
 
     def __str__(self):
         return self.name

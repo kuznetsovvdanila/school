@@ -57,6 +57,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'school_app/static/')
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+STATICFILES_ALLOWED_EXTENSIONS = ['svg', 'jpg', 'jpeg', 'png', 'gif']
 #STATIC_ROOT_DIR
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'school_app/media/')
