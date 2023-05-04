@@ -1,6 +1,4 @@
 from typing import overload
-from venv import create
-
 import django
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
@@ -8,8 +6,6 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
-
-import logging
 
 # Create your models here.
 
@@ -38,7 +34,7 @@ class intf():
             return 2  # неправильный ответ
 
 class Tag(models.Model):
-    name = models.CharField("Название", max_length=64, unique=True)
+    name = models.CharField("Название", max_length=63, unique=True)
 
     def str(self):
         return self.name
@@ -47,7 +43,7 @@ class Tag(models.Model):
         verbose_name = "Тэг"
         verbose_name_plural = "Тэги"
 
-class Notification(models.Model):
+class Event(models.Model):
     class types(models.TextChoices):
         admin = '0', _('AdminNotification')
         homework = '1', _('HomeworkNotification')
@@ -55,21 +51,33 @@ class Notification(models.Model):
         course = '3', _('CourseNotification')
 
     created = models.DateTimeField("Создан", default=django.utils.timezone.now)
-    content = models.CharField("Содержание", max_length=256)
-    type = models.CharField('Тип уведомления', choices=types.choices, max_length=128, default=types.admin)
+    content = models.CharField("Содержание", max_length=255)
+    type = models.CharField('Тип уведомления', choices=types.choices, max_length=127, default=types.admin)
+    #link = models.URLField('') ссылка на зону
 
-    # def save(self, parametr: int, user, text: str):
-    #     if text is not None:
-    #         content = text
-    #     elif parametr==1:
-    #         txt = "1"
-    #         self.content = user.name + txt
-    #     elif parametr==2:
-    #         txt = "1"
-    #         self.content = user.name + txt
+    course = models.ForeignKey("Course", on_delete=models.CASCADE, related_name="events", null=True, blank=True)
+
+    @classmethod
+    def create(cls, course, content, type):
+        event = cls(course=course, content=content, type=type)
+        return event
 
     def __str__(self):
         return self.content
+
+    class Meta:
+        verbose_name = "Шаблон события"
+        verbose_name_plural = "Шаблоны событий"
+
+class Notification(models.Model):
+    template_event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="notifications")
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notifications")
+
+    def finish(self):
+        return f"Привет {self.user.name}! {self.template_event.content}"
+
+    def __str__(self):
+        return "f{self.user.email} - f{self.template_event.content}"
 
     class Meta:
         verbose_name = "Уведомление"
@@ -77,8 +85,10 @@ class Notification(models.Model):
 
 
 class FileTask(models.Model):
-    name = models.CharField("Название", max_length=128)
-    file = models.FileField("Файл", null=True, blank=True, upload_to="files", default=None)
+    name = models.CharField("Название", max_length=127)
+    file = models.FileField("Файл", null=True, blank=True, upload_to="Tasks_files")
+
+    task = models.ForeignKey("Task", on_delete=models.CASCADE, related_name="task_files")
 
     def __str__(self):
         return self.name
@@ -89,8 +99,10 @@ class FileTask(models.Model):
 
 
 class FileLesson(models.Model):
-    name = models.CharField("Название", max_length=128)
-    file = models.FileField("Файл", null=True, blank=True, upload_to="files", default=None)
+    name = models.CharField("Название", max_length=127)
+    file = models.FileField("Файл", null=True, blank=True, upload_to="Lessons_files")
+
+    lesson = models.ForeignKey("Lesson", on_delete=models.CASCADE, related_name="lesson_files")
 
     def __str__(self):
         return self.name
@@ -101,11 +113,12 @@ class FileLesson(models.Model):
 
 
 class Task(models.Model):
-    name = models.CharField("Название задания", max_length=128)
-    text = models.CharField("Текст задания", max_length=4096)
-    correct_answer = models.CharField("Правильный ответ", max_length=512)
+    name = models.CharField("Название задания", max_length=127)
+    text = models.CharField("Текст задания", max_length=4095)
+    correct_answer = models.CharField("Правильный ответ", max_length=511)
     index = models.IntegerField("Индекс внутри homework", default=0)
-    files = models.ManyToManyField(FileTask, related_name="Файлы+", blank=True)
+
+    homework = models.ForeignKey("Homework", on_delete=models.CASCADE, related_name="tasks")
 
     def checkAnswer(self, user, answer: str, path: str = None) -> bool:
         status = False
@@ -124,10 +137,9 @@ class Task(models.Model):
         verbose_name = "Задание"
         verbose_name_plural = "Задания"
 
-
+# Добавить закрытый доступ, для отложенного открытия.
 class Homework(models.Model):
-    name = models.CharField("Название", max_length=32)
-    tasks = models.ManyToManyField(Task, related_name="Задания+", blank=True)
+    name = models.CharField("Название", max_length=31)
 
     @classmethod
     def create(cls, name):
@@ -141,32 +153,46 @@ class Homework(models.Model):
         verbose_name = "Домашняя работа"
         verbose_name_plural = "Домашние работы"
 
-
+# Сделать отложенное открытие
 class Lesson(models.Model):
     class accesses(models.TextChoices):
         available = '0', _('Available')
         partavailable = '1', _('PartAvailable')
         closed = '2', _('Closed')
 
-    id_course = models.IntegerField("ID курса", default=0)
-    name = models.CharField("Название", max_length=128)
-    description = models.CharField("Описание", max_length=2048)
-    link = models.CharField("Ссылка на ютуб", max_length=256)
-    homework = models.ForeignKey(Homework, on_delete=models.SET_NULL, blank=True, null=True)
-    files = models.ManyToManyField(FileLesson, related_name="Файлы+", blank=True)
+    name = models.CharField("Название", max_length=127)
+    description = models.CharField("Описание", max_length=2047)
+    link = models.URLField("Ссылка на ютуб", max_length=255)
     index = models.IntegerField("Индекс внутри курса", default=0)
-    slug = models.SlugField("Часть url", blank=True)
-
+    date_to_start = models.DateTimeField("Дата:Время начала", default=django.utils.timezone.now)
+    slug = models.SlugField("Часть url")
     access = models.CharField("Уровень доступа", default=accesses.closed, choices=accesses.choices, max_length=1)
+
+    homework = models.OneToOneField(Homework, on_delete=models.SET_NULL, related_name="lesson", blank=True, null=True)
+    course = models.ForeignKey("Course", on_delete=models.CASCADE, related_name="lessons")
 
     @property
     def getTasks(self) -> int :
         return len(self.homework.tasks.all())
+    
+    def slug_pk(self) -> str :
+        if self.index != 0:
+            return "%s_%s" % (self.slug, self.index)
+        else:
+            raise ValueError("Invalid index value")
+        
+    def check_to_open_access(self):
+        def check_access() -> bool:
+            homework = self.homework
+            if homework:
+                if homework.tasks.count() > 0:
+                    return True
+            return False
 
-    def setId(self, id, index):
-        self.id_course = id
-        self.index = index
-        self.save()
+        return check_access()
+
+    # self.course.create_event(content=content_choice(sender_info=self.closed_to_open_event(),
+    # choice=event_classification.lesson_closed_to_open), type=Event.types.course)
 
     def __str__(self):
         return self.name
@@ -175,23 +201,15 @@ class Lesson(models.Model):
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
 
-@receiver(post_save, sender=Lesson)
-def postRequestFields(sender, instance, created, **kwargs):
-    if created:
-        instance.slug = instance.name + "_" + str(instance.id)
-        homework = Homework.create(name=instance.name)
-        homework.save()
-        instance.homework.add(homework, bulk=False)
-        instance.save()
-
 
 class Progress(models.Model):
-    id_course = models.IntegerField("ID курса", default=0)
     is_bought = models.BooleanField("Куплено", default=False)
     whole_course = models.IntegerField("Весь курс", default=0)
-    lessons = models.CharField("Уроки %", max_length=512, default=" ")  # may be change to 1024
-    status_tasks = models.CharField("Задачи курса (статус)", max_length=2048, default=" ")
-    answer_tasks = models.CharField("Ответы на задания", max_length=4096, default=" ")
+    lessons = models.CharField("Уроки %", max_length=511, default=" ")  # may be change to 1024
+    status_tasks = models.CharField("Задачи курса (статус)", max_length=2047, default=" ")
+    answer_tasks = models.CharField("Ответы на задания", max_length=4095, default=" ")
+
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="progresses")
 
     # 67 50 90 for lessons : split(" ")
     # 0 1 2.0 1 0 for status_tasks : split(".") : split(" ")
@@ -253,14 +271,13 @@ class Progress(models.Model):
             self.lessons = self.lessonManage(lesson.index, "0")
 
             self.whole_course = round(self.status_task.count('1') /
-                                      (len(self.status_tasks) - self.status_tasks.count(' ') - self.status_tasks.count(
-                                          '.')))
+                    (len(self.status_tasks) - self.status_tasks.count(' ') - self.status_tasks.count('.')))
             self.save()
 
     # вызывается из вивсов при покупке пользователем курса, если пользователь не отправлял таски(нет progress)
     @overload
     def bought(course):
-        create(course, True)  # параметр доступа для create
+        Progress.create(course, True).save()  # параметр доступа для create
 
     # вызывается из вивсов при покупке пользователем курса, если пользователь отправлял таски(есть progress)
     @overload
@@ -306,11 +323,12 @@ class Progress(models.Model):
         _answer_tasks = intf.joinToString(answer_tasks)
         _status_tasks = intf.joinToString(status_tasks)
         _lessons = intf.joinToString(lessons)
-        progress = cls(lessons=_lessons, status_tasks=_status_tasks, answer_tasks=_answer_tasks, id_course=course.id, is_bought=param) #куплен ли курс зависит от параметра
+        progress = cls(lessons=_lessons, status_tasks=_status_tasks, 
+                       answer_tasks=_answer_tasks, is_bought=param) #куплен ли курс зависит от параметра
         return progress
 
     def __str__(self):
-        return str(self.id_course)
+        return self.user.name
 
     class Meta:
         verbose_name = "Прогресс по курсу"
@@ -319,15 +337,13 @@ class Progress(models.Model):
 
 class User(AbstractBaseUser):
     is_active = models.BooleanField("Активный", default=True)
-    name = models.CharField("Имя", max_length=32, default="", blank=True)
-    surname = models.CharField("Фамилия", max_length=64, default="", blank=True)
-    grade = models.CharField("Класс/КолледжУник/Год", max_length=32, default="", blank=True)
-    email = models.EmailField("Почта", max_length=128, blank=True)
-    phone_number = models.CharField("Номер телефона", max_length=32, default="", blank=True)
+    name = models.CharField("Имя", max_length=63)
+    surname = models.CharField("Фамилия", max_length=63, null=True, blank=True)
+    grade = models.CharField("Класс/КолледжУник/Год", max_length=31, null=True, blank=True) 
+    email = models.EmailField("Почта", max_length=127, null=True, blank=True)
+    phone_number = models.CharField("Номер телефона", max_length=31, null=True, blank=True)
     registered = models.DateTimeField("Зарегистрировался", default=django.utils.timezone.now)
-    notifications = models.ManyToManyField(Notification, related_name="Уведомления+", blank=True)
-    avatar = models.ImageField("Аватар", blank=True, default=None)
-    progresses = models.ManyToManyField(Progress, related_name="Прогресс по курсам+", blank=True)
+    avatar = models.ImageField("Аватар", blank=True, null=True, upload_to="avatar")
 
     completed = models.BooleanField("Закончена авторизация", default=False, 
             help_text="проверка на то закончил ли пользователь регистрацию")
@@ -357,9 +373,8 @@ class User(AbstractBaseUser):
 
 
 class Teacher(User):
-    description = models.CharField("Описание", max_length=8192)
-    telegram_link = models.CharField("Ссылка на телеграм", max_length=256, blank=True)
-    #courses id for binding courses of this teacher. include archive as well as active and waiting_for_begin
+    description = models.CharField("Описание", max_length=8191)
+    telegram_link = models.URLField("Ссылка на телеграм", max_length=255)
 
     def __str__(self):
         return self.name
@@ -370,9 +385,11 @@ class Teacher(User):
 
 
 class Chat(models.Model):
-    name = models.CharField("Название", max_length=64)
-    url = models.CharField("Ссылка", max_length=256)
-    image = models.ImageField(null=True, blank=True, upload_to="images", default=None) # !!!!!!!!!!!!!!!!
+    name = models.CharField("Название", max_length=63)
+    url = models.URLField("Ссылка", max_length=255)
+    image = models.ImageField("Аватар чата", null=True, blank=True, upload_to="chat_avatar")
+
+    course = models.ForeignKey("Course", on_delete=models.CASCADE, related_name="chats")
 
     @classmethod
     def create(cls, name : str, url : str):
@@ -386,48 +403,51 @@ class Chat(models.Model):
         verbose_name = "Чат"
         verbose_name_plural = "Чаты"
 
+class Calendar(models.Model):
+    date_storage = models.JSONField("Хранение дат", null=True, blank=True)
+
+    def set_datetime(self, lesson_id, lesson_name):
+        pass
+
+    def __str__(self):
+        return "%s_%s" % (self.course.name, self.course.date_open)
+
+    class Meta:
+        verbose_name = "Календарь"
+        verbose_name_plural = "Календари"
 
 class Course(models.Model):
 
-    class condition(models.IntegerChoices):
-        waiting_for_begin = 0, _('в ожидании')
+    class accesses(models.IntegerChoices):
+        closed = 0, _('закрытый')
         is_active = 1, _('активен')
         is_archive = 2, _('архив')
 
     # Main
-    name = models.CharField("Название", max_length=128)
-    description = models.CharField("Описание", max_length=8192)
-    product_preview = models.CharField("Превью курса", max_length=2048)
+    name = models.CharField("Название", max_length=127)
+    description = models.CharField("Описание", max_length=8191)
+    product_preview = models.CharField("Превью курса", max_length=2047)
     value = models.IntegerField("Стоимость", default=1)
-    slug = models.SlugField("Часть url", blank=True)
+    slug = models.SlugField("URL", unique=True)
 
     # Atributes
-    duration = models.DurationField("Длительность", blank=True, default=timedelta(days=20, hours=10))
+    duration = models.DurationField("Длительность", default=timedelta(days=20, hours=10))
     date_open = models.DateField("Дата начала", blank=True, auto_now_add=True)
     lesson_stream_duration = models.IntegerField("Суммарная длительность уроков", default=100, help_text="длительность записана в часах")
     repeat = models.DateField("Частота добавления уроков", blank=True, auto_now_add=True)
-    is_active = models.IntegerField("Активный",  default=condition.waiting_for_begin, choices=condition.choices, blank=True)
+    access = models.IntegerField("Активный",  default=accesses.closed, choices=accesses.choices)
+
+    calendar = models.OneToOneField(Calendar, on_delete=models.PROTECT, related_name="course", null=True, blank=True)
 
     # M2M
-    teachers = models.ManyToManyField(Teacher, related_name="Учителя+")
-    users = models.ManyToManyField(User, related_name="Ученики+")
-    trials = models.ManyToManyField(User, related_name="Триалы+")
-    lessons = models.ManyToManyField(Lesson, related_name="Уроки+")  # Teacher have access
-    chat = models.ManyToManyField(Chat, related_name="Чат+")
-    tags = models.ManyToManyField(Tag, related_name="Тэги+")
+    teachers = models.ManyToManyField(Teacher, related_name="courses_teacher")
+    users = models.ManyToManyField(User, related_name="courses")
+    trials = models.ManyToManyField(User, related_name="courses_trial")
+    tags = models.ManyToManyField(Tag, related_name="courses")
 
     @property
     def lessonsCount(self) -> int:
         return len(self.lessons.all())
-
-    # вызывается по кнопке через админку, добавляет лессоны
-    def updateLessons(self):
-        lessons = self.lessons.all()
-        for i in range(len(lessons)):
-            lessons[i].setId(self.id, i)
-    
-    def save(self, *args, **kwargs):
-        super(Course, self).save(*args, **kwargs)
 
     # вызывается из вивсов при покупке пользователем курса
     def addUser(self, user):
@@ -438,32 +458,24 @@ class Course(models.Model):
         self.trials.add(user)
         self.save()
 
+    def check_to_open_access(self):
+        
+        
+
+        return False
+    
+    def send_new_time(self, lesson_id, lesson_name):
+        self.calendar.set_datetime(lesson_id, lesson_name)
+
+    def update_accesses(self, lesson_access: Lesson.accesses):
+        pass
+
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
-
-@receiver(m2m_changed, sender=Course.lessons.through)
-def postRequestM2M(sender, instance, action, pk_set, **kwargs):
-    instance.updateLessons()
-
-# @receiver(m2m_changed, sender=Course.chat.through)
-# def postRequestM2M(sender, instance, action, pk_set, **kwargs):
-#     if action == 'post_add':
-#         if instance.id not in pk_set:
-#             e1 = Chat.create(name="hui1", url="")
-#             e2 = Chat.create(name="hui1", url="")
-#             e3 = Chat.create(name="hui1", url="")
-#             e1.save() ; e2.save() ; e3.save()
-#             instance.chat.add(e1, e2, e3)
-
-@receiver(post_save, sender=Course)
-def postRequestFields(sender, instance, created, **kwargs):
-    if created:
-        instance.slug = "_" + str(instance.id)
-        instance.save()
 
 
 class Admin(User):

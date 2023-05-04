@@ -10,9 +10,9 @@ from school_app.models import *
 from school_app.views import *
 from .serializers import *
 
-import logging
+"""import logging
 
-logging.basicConfig(level=logging.INFO, filename="pylog.log", format="%(pastime)s %(levelness)s %(message)s")
+logging.basicConfig(level=logging.INFO, filename="pylog.log", format="%(pastime)s %(levelness)s %(message)s")"""
 
 
 # class CourseView(ViewSet):

@@ -22,4 +22,5 @@ function SASS() {
 export function watch() {
     app.gulp.watch(app.path.html.files, HTML);
     app.gulp.watch(app.path.sass.files, SASS);
+    app.gulp.watch(app.path.js.files, HTML);
 };

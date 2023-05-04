@@ -11,7 +11,6 @@ class CourseAdmin(admin.ModelAdmin):
     change_form_template = "admin/change_progress.html"
 
     def change(self, request, obj):
-        print(11111)
         self.message_user(request, 'Panic')
         chats = []
         for i in range(3):
@@ -23,6 +22,7 @@ class CourseAdmin(admin.ModelAdmin):
         return super().change(request, obj)
 
 admin.site.register(Tag)
+admin.site.register(Event)
 admin.site.register(Notification)
 admin.site.register(FileTask)
 admin.site.register(FileLesson)

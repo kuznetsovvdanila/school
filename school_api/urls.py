@@ -3,7 +3,7 @@ import django.conf.urls.static
 from django.urls import include, path
 from rest_framework import routers
 
-from school import settings
+from school.settings.base import STATIC_URL, STATIC_ROOT
 from . import views
 
 urlpatterns = [
@@ -21,4 +21,4 @@ urlpatterns = [
     path("course/self", views.getMyCourses),
     path("course/chats/self", views.getMyChats),
 
-] + django.conf.urls.static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + django.conf.urls.static.static(STATIC_URL, document_root=STATIC_ROOT)
