@@ -16,7 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework', 
     'rest_framework_api_key',
-    'silk'
+    'channels',
+    'channels_redis',
 ]
 
 MIDDLEWARE = [
@@ -26,8 +27,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'silk.middleware.SilkyMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 ROOT_URLCONF = 'school.urls'
