@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -68,3 +69,12 @@ STATICFILES_ALLOWED_EXTENSIONS = ['svg', 'jpg', 'jpeg', 'png', 'gif']
 #STATIC_ROOT_DIR
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'school_app/media/')
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+CELERY_BEAT_SCHEDULE = {
+    'update_lesson_access': {
+        'task': 'school_app.tasks.update_lesson_access',
+        'schedule': timedelta(minutes=1),  # Расписание выполнения задачи (в данном случае каждая минута)
+    },
+}
