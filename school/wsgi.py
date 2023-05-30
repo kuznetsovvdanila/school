@@ -8,9 +8,10 @@ https://docs.djangoproject.com/en/4.1/howto/deployment/wsgi/
 """
 
 import os
+from CONFIG import ENVIROMENTALPATH
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.settings.base')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.'+ENVIROMENTALPATH)
 
 application = get_wsgi_application()

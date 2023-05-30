@@ -340,8 +340,8 @@ class User(AbstractBaseUser):
     name = models.CharField("Имя", max_length=63)
     surname = models.CharField("Фамилия", max_length=63, null=True, blank=True)
     grade = models.CharField("Класс/КолледжУник/Год", max_length=31, null=True, blank=True) 
-    email = models.EmailField("Почта", max_length=127, null=True, blank=True)
-    phone_number = models.CharField("Номер телефона", max_length=31, null=True, blank=True)
+    email = models.EmailField("Почта", max_length=127, null=True, blank=True, unique=True)
+    phone_number = models.CharField("Номер телефона", max_length=31, null=True, blank=True, unique=True)
     registered = models.DateTimeField("Зарегистрировался", default=django.utils.timezone.now)
     avatar = models.ImageField("Аватар", blank=True, null=True, upload_to="avatar")
 
@@ -413,7 +413,7 @@ class Chat(models.Model):
 class Calendar(models.Model):
     date_storage = models.JSONField("Хранение дат", null=True, blank=True)
 
-    def set_datetime(self, lesson_id, lesson_name, lesson_date_to_start, lesson_slug):
+    def set_datetime(self, lesson_id, lesson_name, lesson_date_to_start, index, lesson_slug):
         dates : dict = json.loads(self.date_storage)
         new_datetime = {
             lesson_id : {
@@ -479,10 +479,8 @@ class Course(models.Model):
         self.save()
 
     def check_to_open_access(self):
-        
-        
 
-        return False
+        return True
 
     def update_accesses(self, lesson_access: Lesson.accesses):
         if lesson_access == Lesson.accesses.available:
