@@ -1,0 +1,1 @@
+ENVIROMENTALPATH = 'settings.develop'
