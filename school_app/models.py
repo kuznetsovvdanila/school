@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
 from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
 import json
+from managers import AccessFilterManager
 
 # Create your models here.
 
@@ -440,8 +441,9 @@ class Course(models.Model):
 
     class accesses(models.IntegerChoices):
         closed = 0, _('закрытый')
-        is_active = 1, _('активен')
-        is_archive = 2, _('архив')
+        wait_for_begin = 1, _('в ожидании начала')
+        is_active = 2, _('активен')
+        is_archive = 3, _('архив')
 
     # Main
     name = models.CharField("Название", max_length=127)
@@ -464,6 +466,9 @@ class Course(models.Model):
     users = models.ManyToManyField(User, related_name="courses")
     trials = models.ManyToManyField(User, related_name="courses_trial")
     tags = models.ManyToManyField(Tag, related_name="courses")
+
+    # Managers
+    openview = AccessFilterManager()
 
     @property
     def lessonsCount(self) -> int:
