@@ -8,7 +8,11 @@ https://docs.djangoproject.com/en/4.1/howto/deployment/asgi/
 """
 
 import os
-
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from school_app import routing  # импортируем файл routing из нашего приложения
+from channels.layers import get_channel_layer
+from CONFIG import ENVIROMENTALPATH
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.'+ENVIROMENTALPATH)
