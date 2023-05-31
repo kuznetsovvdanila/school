@@ -5,9 +5,8 @@ from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from datetime import date, datetime, timedelta, timezone
-from django.db.models.signals import pre_save, post_save, post_init, m2m_changed
 import json
-from managers import AccessFilterManager
+from .managers import AccessFilterManager
 
 # Create your models here.
 
@@ -351,6 +350,8 @@ class User(AbstractBaseUser):
     
     unchecked_lessons = models.JSONField("Непросмотренные уроки", null=True, blank=True)
 
+    #Добавить UserManager
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -469,6 +470,7 @@ class Course(models.Model):
 
     # Managers
     openview = AccessFilterManager()
+    objects = models.Manager()
 
     @property
     def lessonsCount(self) -> int:

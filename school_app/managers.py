@@ -1,8 +1,6 @@
 from django.db import models
 from django.db.models.query import QuerySet
 
-from models import Course
-
 # User
 class UserCourses(models.Manager):
    def get_user_courses(self, user_id):
@@ -17,5 +15,5 @@ class UserCourses(models.Manager):
 # Course
 class AccessFilterManager(models.Manager):
     def get_queryset(self) -> QuerySet:
-        return super().get_queryset().filter(accesses__in=[Course.accesses.wait_for_begin, Course.accesses.is_active])
+        return super().get_queryset().filter(accesses__in=[self.__class__.accesses.wait_for_begin, self.__class__.accesses.is_active])
 

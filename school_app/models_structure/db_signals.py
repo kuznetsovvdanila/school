@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from models import Lesson, Course, Calendar
+from ..models import Lesson, Course, Calendar
 from django.db.models import Max
 from utils.websocket_observer import observe_lesson
 

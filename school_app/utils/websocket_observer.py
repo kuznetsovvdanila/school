@@ -1,8 +1,8 @@
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import json
-from consumers import GROUP_UPDATES
-from models import Lesson, Notification
+from ..consumers import GROUP_UPDATES
+from ..models import Lesson, Notification
 
 async def observe_lesson(lesson : Lesson):
     channel_layer = get_channel_layer()
